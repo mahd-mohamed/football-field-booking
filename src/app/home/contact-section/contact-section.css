@@ -1,0 +1,23 @@
+.contact-section {
+  background-color: #f8f9fa;
+}
+
+.contact-section h2 {
+  font-weight: 600;
+}
+
+mat-form-field {
+  display: block;
+}
+
+/* Social Icon Styling */
+.social-icon {
+  color: #333;
+  transition: color 0.3s ease;
+  text-decoration: none;
+}
+
+.social-icon:hover {
+  color: #1976d2;
+}
+
