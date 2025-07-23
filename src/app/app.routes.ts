@@ -1,49 +1,49 @@
 import { Routes } from '@angular/router';
 
 // AUTH
-import { Login } from './auth/login/login';
-import { Register } from './auth/register/register';
+import { Login } from './features/auth/login/login';
+import { Register } from './features/auth/register/register';
 
 // HOME
-import { LandingPage } from './home/landing-page/landing-page';
+import { HomePage } from './home/home-page/home-page';
 
 // DASHBOARD
-import { UserDashboard } from './dashboard/user-dashboard/user-dashboard';
+import { UserDashboard } from './features/dashboard/user-dashboard/user-dashboard';
 
 // USERS
-import { Profile } from './users/profile/profile';
-import { UserList } from './users/user-list/user-list';
-import { UserCard } from './users/user-card/user-card';
+import { Profile } from './features/users/profile/profile';
+import { UserList } from './features/users/user-list/user-list';
+import { UserCard } from './features/users/user-card/user-card';
 
 // TEAMS
-import { TeamList } from './teams/team-list/team-list';
-import { CreateTeam } from './teams/create-team/create-team';
-import { TeamDetails } from './teams/team-details/team-details';
-import { InvitePlayer } from './teams/invite-player/invite-player';
-import { TeamRequests } from './teams/team-requests/team-requests';
+import { TeamList } from './features/teams/team-list/team-list';
+import { CreateTeam } from './features/teams/create-team/create-team';
+import { TeamDetails } from './features/teams/team-details/team-details';
+import { InvitePlayer } from './features/teams/invite-player/invite-player';
+import { TeamRequests } from './features/teams/team-requests/team-requests';
 
 // PLACES
-import { PlaceList } from './places/place-list/place-list';
-import { PlaceDetails } from './places/place-details/place-details';
+import { PlaceList } from './features/places/place-list/place-list';
+import { PlaceDetails } from './features/places/place-details/place-details';
 
 // BOOKINGS
-import { BookingForm } from './bookings/booking-form/booking-form';
-import { BookingHistory } from './bookings/booking-history/booking-history';
-import { BookingDetails } from './bookings/booking-details/booking-details';
+import { BookingForm } from './features/bookings/booking-form/booking-form';
+import { BookingHistory } from './features/bookings/booking-history/booking-history';
+import { BookingDetails } from './features//bookings/booking-details/booking-details';
 
 // MATCHES
-import { ScheduleMatch } from './matches/schedule-match/schedule-match';
-import { MatchList } from './matches/match-list/match-list';
-import { MatchDetails } from './matches/match-details/match-details';
-import { MatchParticipants } from './matches/match-participants/match-participants';
+import { ScheduleMatch } from './features//matches/schedule-match/schedule-match';
+import { MatchList } from './features//matches/match-list/match-list';
+import { MatchDetails } from './features//matches/match-details/match-details';
+import { MatchParticipants } from './features//matches/match-participants/match-participants';
 
 // NOTIFICATIONS
-import { NotificationList } from './notifications/notification-list/notification-list';
-import { RequestHandler } from './notifications/request-handler/request-handler';
+import { NotificationList } from './features//notifications/notification-list/notification-list';
+import { RequestHandler } from './features//notifications/request-handler/request-handler';
 
 export const routes: Routes = [
   // Home
-  { path: '', component: LandingPage },
+  { path: '', component: HomePage },
 
   // Auth
   { path: 'login', component: Login },
