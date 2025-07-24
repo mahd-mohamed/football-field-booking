@@ -26,6 +26,7 @@ export class PlaceList implements OnInit {
   editPlaceData: any = null;
   showDeleteConfirmModal = false;
   successMessage = '';
+  deletePlaceId: number | null = null;
 
   constructor(private placeService: Place, private auth: Auth) {}
 
@@ -73,15 +74,15 @@ export class PlaceList implements OnInit {
       imageUrl: this.newPlace.imageUrl,
       description: this.newPlace.description
     });
-    this.places = this.placeService.getAllPlaces();
+    this.refreshPlaces();
     this.closeAddPlaceModal();
   }
 
   openEditPlaceModal() {
     if (!this.selectedPlace) return;
-    this.closeDetails();
     this.editPlaceData = { ...this.selectedPlace };
     this.showEditPlaceModal = true;
+    this.closeDetails();
   }
 
   closeEditPlaceModal() {
@@ -98,28 +99,39 @@ export class PlaceList implements OnInit {
       imageUrl: this.editPlaceData.imageUrl,
       description: this.editPlaceData.description
     });
-    this.places = this.placeService.getAllPlaces();
+    this.refreshPlaces();
     this.closeEditPlaceModal();
     this.successMessage = 'Place updated successfully!';
     setTimeout(() => this.successMessage = '', 2500);
   }
 
   confirmDeletePlace() {
+    if (this.selectedPlace) {
+      this.deletePlaceId = this.selectedPlace.id;
+    }
     this.closeDetails();
     this.showDeleteConfirmModal = true;
   }
 
   closeDeleteConfirmModal() {
     this.showDeleteConfirmModal = false;
+    this.deletePlaceId = null;
   }
 
   deletePlaceConfirmed() {
-    if (this.selectedPlace) {
-      this.placeService.deletePlace(this.selectedPlace.id);
-      this.places = this.placeService.getAllPlaces();
+    if (this.deletePlaceId !== null) {
+      this.placeService.deletePlace(this.deletePlaceId);
+      this.refreshPlaces();
       this.successMessage = 'Place deleted successfully!';
       setTimeout(() => this.successMessage = '', 2500);
     }
     this.closeDeleteConfirmModal();
+  }
+
+  refreshPlaces() {
+    this.allPlaces = this.placeService.getAllPlaces();
+    this.places = [...this.allPlaces];
+    this.locations = Array.from(new Set(this.allPlaces.map(p => p.location)));
+    this.types = Array.from(new Set(this.allPlaces.map(p => p.type)));
   }
 }
