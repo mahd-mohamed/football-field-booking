@@ -1,0 +1,16 @@
+.organizer-dashboard h2 {
+  letter-spacing: 0.5px;
+}
+.card {
+  border-radius: 1.2rem;
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(25, 118, 210, 0.08);
+  transition: box-shadow 0.2s;
+}
+.card:hover {
+  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.13);
+}
+.btn {
+  border-radius: 1.2rem;
+  font-weight: 500;
+} 

@@ -1,1 +1,25 @@
-<p>register works!</p>
+<div class="glass-card register-card animate-fade-in">
+  <form (ngSubmit)="onSubmit()" #registerForm="ngForm" autocomplete="off">
+    <h2 class="mb-4 text-center">Register</h2>
+    <div class="mb-3 input-group">
+      <span class="input-group-text"><mat-icon>person</mat-icon></span>
+      <input id="username" name="username" [(ngModel)]="username" required class="form-control mat-input-element" placeholder="Username" />
+    </div>
+    <div class="mb-3 input-group">
+      <span class="input-group-text"><mat-icon>email</mat-icon></span>
+      <input id="email" name="email" [(ngModel)]="email" required type="email" class="form-control mat-input-element" placeholder="Email" />
+    </div>
+    <div class="mb-3 input-group">
+      <span class="input-group-text"><mat-icon>lock</mat-icon></span>
+      <input id="password" name="password" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" required class="form-control mat-input-element" placeholder="Password" />
+      <button type="button" class="btn btn-outline-secondary" (click)="togglePassword()" tabindex="-1">
+        <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+    </div>
+    <button type="submit" class="btn btn-primary w-100 mat-raised-button">Register</button>
+    <div *ngIf="errorMessage" class="error text-danger mt-2 text-center">{{ errorMessage }}</div>
+  </form>
+  <div class="text-center mt-3">
+    <a routerLink="/login" class="text-secondary">Already have an account? Login</a>
+  </div>
+</div>

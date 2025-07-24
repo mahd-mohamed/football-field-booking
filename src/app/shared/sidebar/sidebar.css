@@ -1,0 +1,38 @@
+.active-link {
+  background-color: #3f51b5;
+  color: white !important;
+  border-radius: 5px;
+}
+
+mat-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+mat-nav-list a[mat-list-item] {
+  color: #fff !important;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  transition: color 0.2s;
+}
+mat-nav-list a[mat-list-item] mat-icon {
+  color: #fff !important;
+  opacity: 1 !important;
+}
+mat-nav-list a[mat-list-item]:hover {
+  color: #90caf9 !important;
+}
+mat-nav-list a[mat-list-item]:hover mat-icon {
+  color: #90caf9 !important;
+}
+
+/* اجبار لون النص بجانب الأيقونة ليكون أبيض دائماً */
+::ng-deep .sidebar a[mat-list-item],
+::ng-deep .sidebar a[mat-list-item] span,
+::ng-deep .sidebar a[mat-list-item] .mat-list-item-content {
+  color: #fff !important;
+  font-size: 1.08rem;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}

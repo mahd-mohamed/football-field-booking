@@ -1,1 +1,44 @@
-<p>sidebar works!</p>
+<mat-nav-list *ngIf="role; else loginMsg">
+  <a
+    mat-list-item
+    routerLink="/dashboard/overview"
+    routerLinkActive="active-link"
+    [routerLinkActiveOptions]="{ exact: true }"
+  >
+    <mat-icon class="me-2">dashboard</mat-icon>
+    Overview
+  </a>
+
+  <a *ngIf="role === 'ADMIN'" mat-list-item routerLink="/dashboard/users" routerLinkActive="active-link">
+    <mat-icon class="me-2">group</mat-icon>
+    Users
+  </a>
+
+  <a *ngIf="role === 'ADMIN' || role === 'ORGANIZER'" mat-list-item routerLink="/dashboard/teams" routerLinkActive="active-link">
+    <mat-icon class="me-2">groups</mat-icon>
+    Teams
+  </a>
+
+  <a *ngIf="role === 'ORGANIZER'" mat-list-item routerLink="/dashboard/matches" routerLinkActive="active-link">
+    <mat-icon class="me-2">sports_soccer</mat-icon>
+    Matches
+  </a>
+
+  <a *ngIf="role === 'ADMIN' || role === 'ORGANIZER' || role === 'PLAYER'" mat-list-item routerLink="/dashboard/places" routerLinkActive="active-link">
+    <mat-icon class="me-2">location_on</mat-icon>
+    Places
+  </a>
+
+  <a *ngIf="role === 'ADMIN' || role === 'ORGANIZER' || role === 'PLAYER'" mat-list-item routerLink="/dashboard/bookings" routerLinkActive="active-link">
+    <mat-icon class="me-2">event</mat-icon>
+    Bookings
+  </a>
+
+  <a *ngIf="role === 'PLAYER'" mat-list-item routerLink="/dashboard/profile" routerLinkActive="active-link">
+    <mat-icon class="me-2">person</mat-icon>
+    Profile
+  </a>
+</mat-nav-list>
+<ng-template #loginMsg>
+  <div class="text-center text-muted mt-4">Please login to see dashboard links.</div>
+</ng-template>
