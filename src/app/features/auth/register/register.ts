@@ -1,53 +1,71 @@
-import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { Router ,RouterModule} from '@angular/router';
 import { Auth } from '../../../core/services/auth';
+import { NgIf } from '@angular/common'; 
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms'; 
 
 @Component({
   selector: 'app-register',
-  imports: [CommonModule, FormsModule, MatIconModule, RouterModule],
+  standalone: true,
+  imports: [ReactiveFormsModule, RouterModule,NgIf],
   templateUrl: './register.html',
   styleUrl: './register.css'
 })
-export class Register {
-  username = '';
-  email = '';
-  password = '';
-  errorMessage = '';
-  showPassword = false;
+export class Register implements OnInit {
+  registerForm!: FormGroup;
+  errorMessage: string = '';
 
-  constructor(private auth: Auth, private router: Router) {}
+  constructor(
+    private fb: FormBuilder,
+    private authService: Auth,
+    private router: Router
+  ) { }
 
-  togglePassword() {
-    this.showPassword = !this.showPassword;
+  ngOnInit(): void {
+    this.registerForm = this.fb.group({
+      username: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required]
+    }, { validator: this.passwordMatchValidator });
   }
 
-  onSubmit() {
-    if (!this.username || !this.email || !this.password) {
-      this.errorMessage = 'All fields are required.';
-      return;
-    }
-    if (!this.validateEmail(this.email)) {
-      this.errorMessage = 'Invalid email format.';
-      return;
-    }
-    const success = this.auth.register({
-      username: this.username,
-      email: this.email,
-      password: this.password
-    });
-    if (!success) {
-      this.errorMessage = 'Username or email already exists.';
+  passwordMatchValidator(formGroup: FormGroup) {
+    const passwordControl = formGroup.get('password');
+    const confirmPasswordControl = formGroup.get('confirmPassword');
+
+    if (passwordControl && confirmPasswordControl && passwordControl.value !== confirmPasswordControl.value) {
+      confirmPasswordControl.setErrors({ passwordMismatch: true });
+      return { passwordMismatch: true };
     } else {
-      this.errorMessage = '';
-      this.router.navigate(['/login']);
+      confirmPasswordControl?.setErrors(null);
+      return null;
     }
   }
 
-  validateEmail(email: string): boolean {
-    // Simple email regex
-    return /^\S+@\S+\.\S+$/.test(email);
+  onSubmit(): void {
+    this.errorMessage = '';
+    if (this.registerForm.valid) {
+      const { username, email, password } = this.registerForm.value;
+      // Adapt to Auth service: register expects username, email, password
+      const success = this.authService.register({ username, email, password });
+      if (success) {
+        this.router.navigate(['/login']);
+      } else {
+        this.errorMessage = 'Registration failed. Username or email may already exist.';
+      }
+    } else {
+      this.errorMessage = 'Please enter valid registration data.';
+      this.markAllAsTouched(this.registerForm);
+    }
+  }
+
+  private markAllAsTouched(formGroup: FormGroup): void {
+    Object.values(formGroup.controls).forEach(control => {
+      control.markAsTouched();
+      if (control instanceof FormGroup) {
+        this.markAllAsTouched(control);
+      }
+    });
   }
 }

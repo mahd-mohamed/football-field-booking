@@ -1,39 +1,56 @@
-import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { Router ,RouterModule} from '@angular/router';
 import { Auth } from '../../../core/services/auth';
+import { NgIf } from '@angular/common'; 
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms'; 
 
 @Component({
   selector: 'app-login',
-  imports: [CommonModule, FormsModule, MatIconModule, RouterModule],
+  standalone: true,
+  imports: [ReactiveFormsModule, RouterModule,NgIf],
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-export class Login {
-  identifier = '';
-  password = '';
-  errorMessage = '';
-  showPassword = false;
+export class Login implements OnInit{
+  loginForm!: FormGroup;
+  errorMessage: string = '';
 
-  constructor(private auth: Auth, private router: Router) {}
+  constructor(
+    private fb: FormBuilder,
+    private authService: Auth,
+    private router: Router
+  ) { }
 
-  togglePassword() {
-    this.showPassword = !this.showPassword;
+  ngOnInit(): void {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
+    });
   }
 
-  onSubmit() {
-    if (!this.identifier || !this.password) {
-      this.errorMessage = 'All fields are required.';
-      return;
-    }
-    const success = this.auth.login(this.identifier, this.password);
-    if (!success) {
-      this.errorMessage = 'Invalid username/email or password.';
+  onSubmit(): void {
+    this.errorMessage = '';
+    if (this.loginForm.valid) {
+      const { email, password } = this.loginForm.value;
+      // Adapt to Auth service: login expects identifier (username or email) and password
+      const success = this.authService.login(email, password);
+      if (success) {
+        this.router.navigate(['/dashboard']);
+      } else {
+        this.errorMessage = 'Login failed. Please check your credentials.';
+      }
     } else {
-      this.errorMessage = '';
-      this.router.navigate(['/dashboard']);
+      this.errorMessage = 'Please enter valid login data.';
+      this.markAllAsTouched(this.loginForm);
     }
+  }
+
+  private markAllAsTouched(formGroup: FormGroup): void {
+    Object.values(formGroup.controls).forEach(control => {
+      control.markAsTouched();
+      if (control instanceof FormGroup) {
+        this.markAllAsTouched(control);
+      }
+    });
   }
 }

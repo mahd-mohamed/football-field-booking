@@ -14,7 +14,7 @@ export interface User {
 })
 export class Auth {
   private users: User[] = [
-    { id: 1, username: 'admin', email: 'admin@admin.com', password: 'admin', role: 'ADMIN' },
+    { id: 1, username: 'admin', email: 'admin@admin.com', password: 'admin1', role: 'ADMIN' },
     { id: 2, username: 'organizer', email: 'org@org.com', password: 'organizer', role: 'ORGANIZER' },
     { id: 3, username: 'player', email: 'player@player.com', password: 'player', role: 'PLAYER' }
   ];

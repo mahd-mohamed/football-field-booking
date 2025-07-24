@@ -14,7 +14,7 @@
     Users
   </a>
 
-  <a *ngIf="role === 'ADMIN' || role === 'ORGANIZER'" mat-list-item routerLink="/dashboard/teams" routerLinkActive="active-link">
+  <a *ngIf=" role === 'ORGANIZER'" mat-list-item routerLink="/dashboard/teams" routerLinkActive="active-link">
     <mat-icon class="me-2">groups</mat-icon>
     Teams
   </a>
