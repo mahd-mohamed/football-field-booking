@@ -4,8 +4,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CommonModule } from '@angular/common';
 import { Auth } from '../../../core/services/auth';
 import { AdminDashboardComponent } from '../admin-dashboard/admin-dashboard';
-import { OrganizerDashboardComponent } from '../organizer-dashboard/organizer-dashboard';
-import { PlayerDashboardComponent } from '../player-dashboard/player-dashboard';
+import { UnifiedDashboardComponent } from '../unified-dashboard/unified-dashboard';
 
 @Component({
   selector: 'app-overview',
@@ -15,8 +14,7 @@ import { PlayerDashboardComponent } from '../player-dashboard/player-dashboard';
     MatCardModule,
     FontAwesomeModule,
     AdminDashboardComponent,
-    OrganizerDashboardComponent,
-    PlayerDashboardComponent
+    UnifiedDashboardComponent
   ],
   templateUrl: './overview-page.html',
   styleUrls: ['./overview-page.css'],

@@ -57,4 +57,18 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
-role === 'ADMIN' ||
+Booking System
+• Check availability of place slots
+• Book time slots
+• Cancel/modify bookings within policy
+• Show upcoming bookings in user dashboard
+
+5. BookingMatch
+• id (PK)
+• place_id → FK to Place(id)
+• user_id → FK to User(id) (who booked)
+• team_id → FK to Team(id)
+• start_time
+• end_time
+• status (CONFIRMED, CANCELLED, PENDING)
+• created_at

@@ -90,20 +90,6 @@ export const routes: Routes = [
             (m) => m.AdminDashboardComponent
           ),
       },
-      {
-        path: 'organizer',
-        loadComponent: () =>
-          import('./features/dashboard/organizer-dashboard/organizer-dashboard').then(
-            (m) => m.OrganizerDashboardComponent
-          ),
-      },
-      {
-        path: 'player',
-        loadComponent: () =>
-          import('./features/dashboard/player-dashboard/player-dashboard').then(
-            (m) => m.PlayerDashboardComponent
-          ),
-      },
     ],
   },
   {

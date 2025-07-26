@@ -34,7 +34,7 @@ export class Place {
           id: 1,
           name: 'Camp Nou',
           location: 'Barcelona',
-          type: '11 side',
+          type: '11-a-side',
           imageUrl: '/campnou-2-2.jpg',
           description: 'Legendary stadium in Barcelona, home of FC Barcelona.'
         },
@@ -42,7 +42,7 @@ export class Place {
           id: 2,
           name: 'Mini Estadi',
           location: 'Barcelona',
-          type: '7 side',
+          type: '7-a-side',
           imageUrl: '/Mini Estadi.webp',
           description: 'Smaller pitch for 7-a-side games.'
         },
@@ -50,10 +50,19 @@ export class Place {
           id: 3,
           name: 'City Arena',
           location: 'Madrid',
-          type: '5 side',
+          type: '5-a-side',
           imageUrl: '/5.jpg',
           description: 'Popular 5-a-side pitch in Madrid.'
+        },
+                {
+          id: 4,
+          name: 'City Arena',
+          location: 'Madrid',
+          type: '5-a-side',
+          imageUrl: '/Mini Estadi.webp',
+          description: 'Popular 5-a-side pitch in Madrid.'
         }
+        
       ];
       this.nextId = 4;
       this.saveToStorage();

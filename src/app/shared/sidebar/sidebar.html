@@ -24,6 +24,11 @@
     Matches
   </a>
 
+  <a *ngIf="role === 'PLAYER'" mat-list-item routerLink="/dashboard/matches" routerLinkActive="active-link">
+    <mat-icon class="me-2">sports_soccer</mat-icon>
+    Matches
+  </a>
+
   <a *ngIf="role === 'ADMIN' || role === 'ORGANIZER' || role === 'PLAYER'" mat-list-item routerLink="/dashboard/places" routerLinkActive="active-link">
     <mat-icon class="me-2">location_on</mat-icon>
     Places
