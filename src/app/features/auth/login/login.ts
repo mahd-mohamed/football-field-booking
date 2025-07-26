@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router ,RouterModule} from '@angular/router';
 import { Auth } from '../../../core/services/auth';
-import { NgIf } from '@angular/common'; 
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms'; 
+import { NgIf } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-login',
@@ -32,11 +32,12 @@ export class Login implements OnInit{
     this.errorMessage = '';
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
-      // Adapt to Auth service: login expects identifier (username or email) and password
       const success = this.authService.login(email, password);
       if (success) {
+        console.log('Login successful');
         this.router.navigate(['/dashboard']);
       } else {
+        console.error('Login failed');
         this.errorMessage = 'Login failed. Please check your credentials.';
       }
     } else {

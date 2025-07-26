@@ -51,6 +51,27 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'teams/create',
+        loadComponent: () =>
+          import('./features/teams/create-team/create-team').then(
+            (m) => m.CreateTeam
+          ),
+      },
+      {
+        path: 'teams/:id',
+        loadComponent: () =>
+          import('./features/teams/team-details/team-details').then(
+            (m) => m.TeamDetails
+          ),
+      },
+      {
+        path: 'teams/:id/invite',
+        loadComponent: () =>
+          import('./features/teams/invite-player/invite-player').then(
+            (m) => m.InvitePlayer
+          ),
+      },
+      {
         path: 'places',
         loadComponent: () =>
           import('./features/places/place-list/place-list').then(

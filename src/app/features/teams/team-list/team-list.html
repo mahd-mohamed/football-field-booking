@@ -1,1 +1,46 @@
-<p>team-list works!</p>
+<section class="container p-2 ">
+  <div class="content-wrapper">
+    <div class="top-header">
+      <button class="back-arrow-button" (click)="goToHome()">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15.41 7.41L14 6L8 12L14 18L15.41 16.59L10.83 12L15.41 7.41Z"/>
+        </svg>
+      </button>
+      <h1 class="page-title">Your Teams</h1>
+      <div class="top-right-buttons">
+      
+        <button class="icon-button" (click)="goToCreateTeam()">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="main-content-area mb-2 ">
+      <div *ngIf="successMessage" class="success-message" role="alert">
+        {{ successMessage }}
+      </div>
+      <div *ngIf="errorMessage" class="error-message-alert" role="alert">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="teams.length === 0; else teamListContent" class="no-teams-message">
+        <p>No teams created yet. Click the plus icon to create one!</p>
+      </div>
+
+      <ng-template #teamListContent>
+        <mat-card *ngFor="let team of teams" class="team-card-item" (click)="goToTeamDetails(team.id)" appearance="outlined">
+          <mat-card-header>
+            <mat-card-title class="team-item-name">{{ team.name }}</mat-card-title>
+            <mat-card-subtitle class="team-item-description">{{ team.description || 'No description provided.' }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-actions align="end">
+            <button mat-button class="delete-button" (click)="deleteTeam(team.id); $event.stopPropagation()">Delete</button>
+          </mat-card-actions>
+        </mat-card>
+      </ng-template>
+    </div>
+
+    </div>
+</section>

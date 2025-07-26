@@ -1,0 +1,466 @@
+/* src/app/features/teams/team-details/team-details.component.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+
+
+
+/* Top Header with Edit Button */
+.top-header {
+    width: 100%;
+    margin-bottom: 1rem; /* Space below header */
+}
+
+.page-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    flex-grow: 1;
+    text-align: center;
+    margin: 0;
+    color: inherit;
+}
+
+.edit-toggle-button {
+    background: none;
+   width: 100px;
+  height: 100px; 
+  background-color: #20c997;
+  border-radius: 50%;    color: gray; /* Gray icon */
+    cursor: pointer;
+    padding: 0.5rem;
+  
+    transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+.edit-toggle-button svg {
+    width: 24px;
+    height: 24px;
+}
+.edit-toggle-button:hover {
+    transform: scale(1.1);
+    color: green;
+}
+
+
+/* Form card styles - Adopted from the provided neumorphism card */
+.form-card {
+  --bg: var(--neumorphism-bg);
+  --contrast: var(--neumorphism-contrast);
+  --grey: var(--neumorphism-grey);
+  position: relative;
+  padding: 9px;
+  background-color: var(--bg);
+  border-radius: 35px;
+  box-shadow: var(--neumorphism-shadow-light) 0px 50px 100px -20px,
+              var(--neumorphism-shadow-dark) 0px 30px 60px -30px,
+              var(--neumorphism-shadow-inset) 0px -2px 6px 0px inset;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex; /* Make it a flex container */
+  flex-direction: column; /* Stack content vertically */
+  align-items: center; /* Center content horizontally */
+}
+
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-conic-gradient(var(--bg) 0.0000001%, var(--grey) 0.000104%) 60% 60%/600% 600%;
+  filter: opacity(10%) contrast(105%);
+  border-radius: 35px; /* Match outer card border-radius */
+}
+
+.card-inner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  background-color: var(--contrast);
+  border-radius: 30px;
+  padding: 20px;
+  box-sizing: border-box;
+  width: 100%; /* Take full width of parent */
+  flex-grow: 1; /* Allow it to grow */
+}
+
+/* Team Details Content (View Mode) */
+.team-details-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+    color: var(--neumorphism-text-dark);
+}
+
+/* New: Container for team name and edit icon */
+.team-name-row {
+    display: flex;
+    justify-content: center; /* Center the group */
+    align-items: center;
+    gap: 10px; /* Space between name and icon */
+    margin-bottom: 0.5rem; /* Space below the name row */
+}
+
+.team-details-name {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0; /* Remove default margin to control spacing with gap */
+    color: var(--neumorphism-text-dark);
+}
+
+/* New: Edit Icon Button Styles */
+.edit-icon-button {
+    background-color: green; /* Green background */
+    color: white; /* White icon */
+    padding: 8px; /* Padding around the icon */
+    border-radius: 50%; /* Make it circular */
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1), -2px -2px 5px rgba(255, 255, 255, 0.7); /* Neumorphism shadow */
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+.edit-icon-button svg {
+    width: 20px; /* Icon size */
+    height: 20px;
+}
+.edit-icon-button:hover {
+    background-color: #16a34a; /* Darker green on hover */
+    transform: translateY(-1px);
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15), -3px -3px 8px rgba(255, 255, 255, 0.8);
+}
+.edit-icon-button:active {
+    transform: scale(0.95);
+    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.1), inset -1px -1px 3px rgba(255, 255, 255, 0.7); /* Inset shadow on click */
+}
+
+/* Edit Form Content */
+.edit-form-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    text-align: left;
+    margin-bottom: 0.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--neumorphism-text-medium);
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: var(--neumorphism-text-dark);
+    font-family: inherit;
+    background-color: var(--neumorphism-bg);
+    border: none;
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.7);
+    outline: none;
+    transition: box-shadow 0.2s ease-in-out;
+    box-sizing: border-box;
+}
+.form-input::placeholder {
+    opacity: 0.5;
+    color: var(--neumorphism-text-medium);
+}
+.form-input:focus {
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.7),
+                0 0 0 2px var(--neumorphism-text-dark);
+}
+
+/* Player Section Styles */
+.players-section {
+    margin-top: 1.5rem;
+    width: 100%;
+    text-align: left;
+}
+
+.players-section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: black;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.no-players-message {
+    color: green;
+    text-align: center;
+    padding: 1rem;
+    background-color: red;
+    border-radius: 10px;
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.05), inset -2px -2px 5px rgba(255, 255, 255, 0.5);
+}
+
+.player-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.player-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    border-radius: 10px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.05), -2px -2px 5px rgba(255, 255, 255, 0.5);
+    font-size: 0.95rem;
+}
+
+.remove-player-button {
+    background-color:red;
+
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+.remove-player-button:hover {
+    background-color: red;
+    transform: translateY(-1px);
+}
+.remove-player-button:active {
+    transform: scale(0.98);
+}
+
+
+/* Button Group */
+.button-group {
+    display: flex;
+    justify-content: center; /* Center buttons */
+    gap: 1rem; /* Space between buttons */
+    margin-top: 1.5rem;
+    flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+}
+
+/* Submit Button (Invite Player / Save Changes) */
+.submit-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    color: white;
+    font-weight: 600;
+    padding: 12px 16px;
+    font-size: inherit;
+    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    background-color: green; /* Green */
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1), -3px -3px 6px rgba(255, 255, 255, 0.7);
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
+    min-width: 120px; /* Ensure minimum width */
+}
+.submit-button:hover {
+    background-color:green;
+    transform: translateY(-2px);
+}
+.submit-button:active {
+    transform: scale(0.98);
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.7);
+}
+.submit-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: var(--neumorphism-grey);
+    color: var(--neumorphism-text-dark);
+}
+
+/* Secondary Button (Back to Teams / Cancel) */
+.secondary-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    color: white;
+    font-weight: 600;
+    padding: 12px 16px;
+    font-size: inherit;
+    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    background-color: green;
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1), -3px -3px 6px rgba(255, 255, 255, 0.7);
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
+    min-width: 120px; /* Ensure minimum width */
+}
+.secondary-button:hover {
+    background-color:green;
+    transform: translateY(-2px);
+}
+.secondary-button:active {
+    transform: scale(0.98);
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.7);
+}
+
+
+/* Error and success message styles */
+.success-message {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: var(--success-green);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    text-align: center;
+}
+
+.error-message-alert {
+    background-color: rgba(220, 38, 38, 0.1);
+    color: var(--error-red);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    text-align: center;
+}
+
+.no-team-found {
+    text-align: center;
+    padding: 2rem;
+    color: var(--neumorphism-text-medium);
+    background-color: var(--neumorphism-contrast);
+    border-radius: 1.5rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+/* Keyframe Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounceIn {
+    0% { opacity: 0; transform: scale(0.8) translateY(-50px); box-shadow: none; }
+    60% { opacity: 1; transform: scale(1.05) translateY(10px); box-shadow: var(--neumorphism-shadow-light) 0px 50px 100px -20px; }
+    100% { transform: scale(1) translateY(0); box-shadow: var(--neumorphism-shadow-light) 0px 50px 100px -20px; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .top-header {
+        padding: 0 1rem; /* Adjust padding */
+        margin-bottom: 0.5rem;
+    }
+    .page-title {
+        font-size: 1.8rem;
+    }
+    .edit-toggle-button svg {
+        width: 20px;
+        height: 20px;
+    }
+    .form-card {
+        padding: 6px;
+        border-radius: 25px;
+    }
+    .card-inner {
+        padding: 15px;
+        border-radius: 20px;
+    }
+    .team-details-name {
+        font-size: 1.8rem;
+    }
+    .team-details-description {
+        font-size: 0.9rem;
+    }
+    .players-section-title {
+        font-size: 1.1rem;
+    }
+    .player-item {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+    .remove-player-button {
+        padding: 0.2rem 0.5rem;
+        font-size: 0.7rem;
+    }
+    .button-group {
+        flex-direction: column; /* Stack buttons vertically */
+        gap: 0.8rem;
+    }
+    .submit-button, .secondary-button {
+        width: 80%; /* Wider buttons on mobile */
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+    .team-details-name {
+        font-size: 1.5rem;
+    }
+    .edit-icon-button {
+        padding: 5px;
+    }
+    .edit-icon-button svg {
+        width: 16px;
+        height: 16px;
+    }
+    .team-name-row {
+        gap: 8px; /* Adjust gap for smaller screens */
+    }
+    .team-details-name {
+        font-size: 1.8rem;
+    }
+    .edit-icon-button {
+        padding: 6px;
+    }
+    .edit-icon-button svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-header {
+        flex-direction: column; /* Stack title and button on very small screens */
+        gap: 0.5rem;
+    }
+    .page-title {
+        font-size: 1.5rem;
+    }
+    .edit-toggle-button {
+        align-self: flex-end; /* Keep button to the right if title is centered */
+    }
+    .card-inner {
+        padding: 10px;
+    }
+    .team-details-name {
+        font-size: 1.5rem;
+    }
+    .players-section-title {
+        font-size: 1rem;
+    }
+    .player-item {
+        font-size: 0.85rem;
+    }
+    .submit-button, .secondary-button {
+        width: 90%; /* Even wider buttons */
+    }
+    .team-details-name {
+        font-size: 1.5rem;
+    }
+    .edit-icon-button {
+        padding: 5px;
+    }
+    .edit-icon-button svg {
+        width: 16px;
+        height: 16px;
+    }
+}

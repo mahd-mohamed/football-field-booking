@@ -1,1 +1,84 @@
-<p>team-details works!</p>
+<section class="container p-3">
+  <div class="top-header">
+    <h2 class="page-title">Team Details</h2>
+   
+  </div>
+
+  <div class="form-card">
+    
+    <div *ngIf="successMessage" class="success-message text-center" role="alert">
+      {{ successMessage }}
+    </div>
+    <div *ngIf="errorMessage" class="error-message-alert text-center" role="alert">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="team; else notFound" class="team-details-content">
+      <!-- View Mode -->
+     <ng-container *ngIf="!isEditing">
+    <div class="team-name-row"> <!-- New div to contain name and edit icon -->
+      <h3 class="team-details-name">{{ team.name }}</h3>
+      <!-- Edit Icon Button - Visible only to Organizer, next to team name -->
+      <button *ngIf="isOrganizer" class="edit-icon-button" (click)="toggleEditMode()">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z"/>
+        </svg>
+      </button>
+    </div>
+    <p class="team-details-description">{{ team.description || 'No description provided.' }}</p>
+  </ng-container>
+
+      <!-- Edit Mode -->
+      <ng-container *ngIf="isEditing">
+        <form [formGroup]="editTeamForm" (ngSubmit)="saveTeamChanges()" class="edit-form-content">
+          <div class="form-group">
+            <label for="editTeamName" class="form-label">Team Name:</label>
+            <input type="text" id="editTeamName" formControlName="name" class="form-input" placeholder="Enter new team name">
+            <div *ngIf="editTeamForm.get('name')?.invalid && (editTeamForm.get('name')?.dirty || editTeamForm.get('name')?.touched)" class="error-text">
+              <div *ngIf="editTeamForm.get('name')?.errors?.['required']">Team name is required.</div>
+              <div *ngIf="editTeamForm.get('name')?.errors?.['minlength']">Team name must be at least 3 characters.</div>
+              <div *ngIf="editTeamForm.get('name')?.errors?.['maxlength']">Team name cannot exceed 50 characters.</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="editTeamDescription" class="form-label">Description (Optional):</label>
+            <textarea id="editTeamDescription" formControlName="description" class="form-input" placeholder="Describe your team"></textarea>
+            <div *ngIf="editTeamForm.get('description')?.invalid && (editTeamForm.get('description')?.dirty || editTeamForm.get('description')?.touched)" class="error-text">
+              <div *ngIf="editTeamForm.get('description')?.errors?.['maxlength']">Description cannot exceed 500 characters.</div>
+            </div>
+          </div>
+          <div class="button-group">
+            <button type="submit" class="submit-button" [disabled]="editTeamForm.invalid">Save Changes</button>
+            <button type="button" (click)="toggleEditMode()" class="secondary-button">Cancel</button>
+          </div>
+        </form>
+      </ng-container>
+
+      <!-- Players Section -->
+      <div class="players-section mt-6">
+        <h4 class="players-section-title">Players ({{ players.length }})</h4>
+        <div *ngIf="players.length === 0" class="no-players-message">
+          <p>No players in this team yet.</p>
+        </div>
+        <ul *ngIf="players.length > 0" class="player-list">
+          <li *ngFor="let player of players" class="player-item">
+            <span>{{ player.name }} ({{ player.position }})</span>
+            <button *ngIf="isOrganizer" (click)="removePlayer(player.id)" class="remove-player-button">Remove</button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="button-group mt-6">
+        <button (click)="goToInvitePlayer(team.id)" class="submit-button">Invite Player</button>
+        <button (click)="goBackToList()" class="secondary-button ms-4">Back to Teams</button>
+      </div>
+    </div>
+
+    <ng-template #notFound>
+      <div class="no-team-found text-center">
+        <p>Team not found or an error occurred.</p>
+        <button (click)="goBackToList()" class="submit-button mt-4">Back to Teams List</button>
+      </div>
+    </ng-template>
+  </div>
+</section>

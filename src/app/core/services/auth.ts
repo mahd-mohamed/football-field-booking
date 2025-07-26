@@ -64,4 +64,9 @@ export class Auth {
   private setCurrentUser(user: User): void {
     localStorage.setItem(this.currentUserKey, JSON.stringify(user));
   }
+
+  isOrganizer(): boolean {
+    const currentUser = this.getCurrentUser();
+    return currentUser?.role === 'ORGANIZER' || currentUser?.role === 'ADMIN';
+  }
 }
