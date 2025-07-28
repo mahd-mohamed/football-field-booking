@@ -81,8 +81,29 @@ export const routes: Routes = [
       {
         path: 'bookings',
         loadComponent: () =>
-          import('./features/bookings/booking-history/booking-history').then(
-            (m) => m.BookingHistory
+          import('./features/bookings/booking-list/booking-list').then(
+            (m) => m.BookingListComponent
+          ),
+      },
+      {
+        path: 'bookings/create',
+        loadComponent: () =>
+          import('./features/bookings/booking-form/booking-form').then(
+            (m) => m.BookingFormComponent
+          ),
+      },
+      {
+        path: 'bookings/:id',
+        loadComponent: () =>
+          import('./features/bookings/booking-details/booking-details').then(
+            (m) => m.BookingDetailsComponent
+          ),
+      },
+      {
+        path: 'admin/bookings',
+        loadComponent: () =>
+          import('./features/bookings/admin-booking-management/admin-booking-management').then(
+            (m) => m.AdminBookingManagementComponent
           ),
       },
       {

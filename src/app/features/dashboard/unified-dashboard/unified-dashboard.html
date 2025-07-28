@@ -1,32 +1,90 @@
 <div class="unified-dashboard p-4 bg-light min-vh-100">
-  <h2 class="fw-bold text-primary mb-5 text-center">Dashboard</h2>
+  <h2 class="fw-bold text-primary mb-5 text-center">
+    {{ userRole === 'ORGANIZER' ? 'Organizer Dashboard' : 'Player Dashboard' }}
+  </h2>
+  
   <div class="row g-4 justify-content-center">
+    <!-- Teams Section -->
     <div class="col-12 col-md-6 col-lg-4">
       <div class="card shadow-sm p-4 text-center">
         <h5 class="card-title mb-3">My Teams</h5>
-        <p class="mb-4">Manage your teams and invitations.</p>
+        <p class="mb-2">
+          {{ userRole === 'ORGANIZER' ? 'Manage your teams and organize matches.' : 'View your teams and join matches.' }}
+        </p>
+        <p class="text-muted mb-3">Teams created: {{ teamCount }}</p>
         <a routerLink="/dashboard/teams" class="btn btn-outline-success w-100">Manage Teams</a>
       </div>
     </div>
+
+    <!-- Matches Section -->
     <div class="col-12 col-md-6 col-lg-4">
       <div class="card shadow-sm p-4 text-center">
         <h5 class="card-title mb-3">My Matches</h5>
-        <p class="mb-4">Schedule and manage your matches.</p>
+        <p class="mb-4">
+          {{ userRole === 'ORGANIZER' ? 'Schedule and manage matches for your teams.' : 'View and join upcoming matches.' }}
+        </p>
         <a routerLink="/dashboard/matches" class="btn btn-outline-primary w-100">Manage Matches</a>
       </div>
     </div>
+
+    <!-- Bookings Section -->
     <div class="col-12 col-md-6 col-lg-4">
       <div class="card shadow-sm p-4 text-center">
         <h5 class="card-title mb-3">My Bookings</h5>
-        <p class="mb-4">View and manage your bookings.</p>
+        <p class="mb-4">
+          {{ userRole === 'ORGANIZER' ? 'Manage field bookings for your teams.' : 'View your field bookings.' }}
+        </p>
         <a routerLink="/dashboard/bookings" class="btn btn-outline-info w-100">My Bookings</a>
       </div>
     </div>
+
+    <!-- Profile Section -->
     <div class="col-12 col-md-6 col-lg-4">
       <div class="card shadow-sm p-4 text-center">
         <h5 class="card-title mb-3">My Profile</h5>
-        <p class="mb-4">View and edit your profile.</p>
+        <p class="mb-4">View and edit your profile information.</p>
         <a routerLink="/dashboard/profile" class="btn btn-outline-primary w-100">My Profile</a>
+      </div>
+    </div>
+
+    <!-- Create Team Section (Only for Players) -->
+    <div class="col-12 col-md-6 col-lg-4" *ngIf="userRole === 'PLAYER'">
+      <div class="card shadow-sm p-4 text-center">
+        <h5 class="card-title mb-3">Create New Team</h5>
+        <p class="mb-4">Start your own team and become an organizer.</p>
+        <a routerLink="/dashboard/teams/create" class="btn btn-outline-warning w-100">Create Team</a>
+      </div>
+    </div>
+
+    <!-- Team Management Section (Only for Organizers) -->
+    <div class="col-12 col-md-6 col-lg-4" *ngIf="userRole === 'ORGANIZER'">
+      <div class="card shadow-sm p-4 text-center">
+        <h5 class="card-title mb-3">Team Management</h5>
+        <p class="mb-4">Invite players and manage team members.</p>
+        <a routerLink="/dashboard/teams" class="btn btn-outline-warning w-100">Manage Team</a>
+      </div>
+    </div>
+
+    <!-- Notifications Section -->
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card shadow-sm p-4 text-center">
+        <h5 class="card-title mb-3">Notifications</h5>
+        <p class="mb-4">View your notifications and updates.</p>
+        <a routerLink="/dashboard/notifications" class="btn btn-outline-secondary w-100">Notifications</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Role Information -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="alert alert-info text-center">
+        <strong>Current Role:</strong> {{ userRole }}
+        <span *ngIf="userRole === 'ORGANIZER' && currentUser?.role === 'PLAYER'">
+          (You are an organizer in your teams, but your main role is Player)
+        </span>
+        <br>
+        <strong>Teams Created:</strong> {{ teamCount }}
       </div>
     </div>
   </div>

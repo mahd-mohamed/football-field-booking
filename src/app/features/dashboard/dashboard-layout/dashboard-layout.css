@@ -1,18 +1,62 @@
 .dashboard-layout {
   display: flex;
   height: 100vh;
+  width: 100%;
+  position: relative;
 }
 
 .sidebar {
   width: 250px;
+  min-width: 250px; /* Prevent shrinking */
+  max-width: 250px; /* Prevent expanding */
   background-color: #1e1e2f;
   color: white;
   padding: 1rem;
+  position: fixed; /* Make it fixed */
+  left: 0;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 1000; /* Ensure it stays on top */
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: none; /* Remove any transitions */
 }
 
 .content {
   flex-grow: 1;
+  margin-left: 250px; /* Offset for fixed sidebar */
   padding: 1.5rem;
   background-color: #f5f5f5;
   overflow-y: auto;
+  min-height: 100vh;
+  width: calc(100% - 250px); /* Ensure content takes remaining width */
+}
+
+/* Ensure sidebar stays visible on all screen sizes */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 250px;
+    min-width: 250px;
+    max-width: 250px;
+  }
+  
+  .content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+  }
+}
+
+/* Prevent any responsive hiding of sidebar */
+@media (max-width: 480px) {
+  .sidebar {
+    width: 250px;
+    min-width: 250px;
+    max-width: 250px;
+    display: block !important;
+  }
+  
+  .content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+  }
 }

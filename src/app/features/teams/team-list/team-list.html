@@ -6,9 +6,8 @@
           <path d="M15.41 7.41L14 6L8 12L14 18L15.41 16.59L10.83 12L15.41 7.41Z"/>
         </svg>
       </button>
-      <h1 class="page-title">Your Teams</h1>
+      <h1 class="page-title">My Teams</h1>
       <div class="top-right-buttons">
-      
         <button class="icon-button" (click)="goToCreateTeam()">
           <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
             <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
@@ -26,7 +25,8 @@
       </div>
 
       <div *ngIf="teams.length === 0; else teamListContent" class="no-teams-message">
-        <p>No teams created yet. Click the plus icon to create one!</p>
+        <p>You haven't created any teams yet. Click the plus icon to create your first team!</p>
+        <p class="team-count">Teams created: {{ teams.length }}</p>
       </div>
 
       <ng-template #teamListContent>

@@ -27,6 +27,7 @@ export class TeamDetails implements OnInit, OnDestroy { // Renamed class to Team
   isOrganizer: boolean = false; // To control edit button visibility
   isEditing: boolean = false; // To toggle edit mode
   editTeamForm!: FormGroup; // Form for editing team details
+  currentUser: any;
 
   private destroy$ = new Subject<void>();
 
@@ -40,10 +41,7 @@ export class TeamDetails implements OnInit, OnDestroy { // Renamed class to Team
 
   ngOnInit(): void {
     console.log('TeamDetailsComponent: Initialized.');
-
-    // Check if current user is an organizer
-    this.isOrganizer = this.authService.isOrganizer();
-    console.log('TeamDetailsComponent: Is current user an organizer?', this.isOrganizer);
+    this.currentUser = this.authService.getCurrentUser();
 
     // Initialize the edit form (even if not editing yet)
     this.editTeamForm = this.fb.group({
@@ -82,6 +80,7 @@ export class TeamDetails implements OnInit, OnDestroy { // Renamed class to Team
             description: this.team.description
           });
           this.loadDummyPlayers(); // Load dummy players for the team
+          this.checkIfUserIsOrganizer(id); // Check if current user is organizer of this team
         } else {
           this.errorMessage = 'Team not found.';
           console.warn(`TeamDetailsComponent: Team with ID "${id}" not found. Redirecting to team list.`);
@@ -92,6 +91,20 @@ export class TeamDetails implements OnInit, OnDestroy { // Renamed class to Team
         console.error("TeamDetailsComponent: Error loading team details:", err);
         this.errorMessage = `Failed to load team details: ${err.message || 'Unknown error'}`;
         this.router.navigate(['/dashboard/teams']); // Redirect on error
+      }
+    });
+  }
+
+  checkIfUserIsOrganizer(teamId: string): void {
+    if (!this.currentUser) return;
+
+    this.teamService.isUserTeamOrganizer(this.currentUser.id, teamId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (isOrganizer) => {
+        this.isOrganizer = isOrganizer || this.currentUser.role === 'ORGANIZER' || this.currentUser.role === 'ADMIN';
+        console.log('TeamDetailsComponent: Is current user an organizer of this team?', this.isOrganizer);
+      },
+      error: (error) => {
+        console.error('TeamDetailsComponent: Error checking organizer status:', error);
       }
     });
   }

@@ -1,1 +1,154 @@
-<p>booking-details works!</p>
+<div class="booking-details-container">
+  <!-- Header -->
+  <div class="booking-header">
+    <button mat-icon-button (click)="goBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Booking Details</h1>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div *ngIf="successMessage" class="success-message" role="alert">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="error-message" role="alert">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-section">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading booking details...</p>
+  </div>
+
+  <!-- Booking Details -->
+  <div *ngIf="!isLoading && booking" class="booking-content">
+    <mat-card class="booking-card">
+      <mat-card-header>
+        <mat-card-title>{{ booking.place_name }}</mat-card-title>
+        <mat-card-subtitle>{{ booking.team_name }}</mat-card-subtitle>
+        <mat-chip [color]="getStatusColor(booking.status)" selected class="status-chip">
+          {{ getStatusText(booking.status) }}
+        </mat-chip>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="booking-info">
+          <div class="info-section">
+            <h3>Booking Information</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <mat-icon>event</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Date</span>
+                  <span class="info-value">{{ formatDate(booking.start_time) }}</span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <mat-icon>schedule</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Time</span>
+                  <span class="info-value">{{ formatDateTime(booking.start_time, booking.end_time) }}</span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <mat-icon>location_on</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Place</span>
+                  <span class="info-value">{{ booking.place_name }}</span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <mat-icon>groups</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Team</span>
+                  <span class="info-value">{{ booking.team_name }}</span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <mat-icon>person</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Booked By</span>
+                  <span class="info-value">{{ booking.user_name }}</span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <mat-icon>calendar_today</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Created</span>
+                  <span class="info-value">{{ formatDate(booking.created_at) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="booking-status-section">
+            <h3>Booking Status</h3>
+            <div class="status-info">
+              <mat-chip [color]="getStatusColor(booking.status)" selected class="status-chip-large">
+                {{ getStatusText(booking.status) }}
+              </mat-chip>
+              
+              <div class="status-description">
+                <p *ngIf="booking.status === 'PENDING'">
+                  Your booking is pending approval. You will be notified once it's confirmed.
+                </p>
+                <p *ngIf="booking.status === 'CONFIRMED'">
+                  Your booking has been confirmed. You can proceed with your scheduled activity.
+                </p>
+                <p *ngIf="booking.status === 'CANCELLED'">
+                  This booking has been cancelled and is no longer active.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="booking-timeline">
+            <h3>Booking Timeline</h3>
+            <div class="timeline">
+              <div class="timeline-item" [class.active]="isUpcoming()" [class.past]="isPast()">
+                <div class="timeline-icon">
+                  <mat-icon>schedule</mat-icon>
+                </div>
+                <div class="timeline-content">
+                  <h4>Scheduled</h4>
+                  <p>{{ formatDate(booking.start_time) }} at {{ formatTime(booking.start_time) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions align="end">
+        <button mat-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Back to Bookings
+        </button>
+        <button 
+          *ngIf="canCancelBooking()" 
+          mat-raised-button 
+          color="warn" 
+          (click)="cancelBooking()">
+          <mat-icon>cancel</mat-icon>
+          Cancel Booking
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Not Found State -->
+  <div *ngIf="!isLoading && !booking" class="not-found">
+    <mat-icon>event_busy</mat-icon>
+    <h3>Booking Not Found</h3>
+    <p>The booking you're looking for doesn't exist or has been removed.</p>
+    <button mat-raised-button color="primary" (click)="goBack()">
+      Back to Bookings
+    </button>
+  </div>
+</div>

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { Team, ITeam } from '../../../core/services/team';
+import { Auth } from '../../../core/services/auth';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { NgIf,NgFor } from '@angular/common';
@@ -23,12 +24,18 @@ export class TeamList implements OnInit, OnDestroy {
   teams: ITeam[] = []; // Use ITeam interface
   successMessage: string | null = null;
   errorMessage: string | null = null;
+  currentUser: any;
   private destroy$ = new Subject<void>();
 
-  constructor(private teamService: Team, private router: Router) {}
+  constructor(
+    private teamService: Team, 
+    private router: Router,
+    private authService: Auth
+  ) {}
 
   ngOnInit(): void {
-    this.loadTeams();
+    this.currentUser = this.authService.getCurrentUser();
+    this.loadUserTeams();
   }
 
   ngOnDestroy(): void {
@@ -36,16 +43,23 @@ export class TeamList implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  loadTeams(): void {
-    this.teamService.getTeams().pipe(takeUntil(this.destroy$)).subscribe({
+  loadUserTeams(): void {
+    if (!this.currentUser) {
+      this.errorMessage = 'User not authenticated. Please login again.';
+      return;
+    }
+
+    // Load teams created by the current user
+    this.teamService.getTeamsByCreator(this.currentUser.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (teams) => {
         this.teams = teams;
         this.successMessage = null;
         this.errorMessage = null;
+        console.log('Loaded teams created by user:', this.currentUser.username, teams);
       },
       error: (err) => {
-        console.error('Failed to load teams', err);
-        this.errorMessage = 'Failed to load teams. Please try again.';
+        console.error('Failed to load user teams', err);
+        this.errorMessage = 'Failed to load your teams. Please try again.';
         this.successMessage = null;
       }
     });
@@ -72,7 +86,7 @@ export class TeamList implements OnInit, OnDestroy {
         next: () => {
           this.successMessage = 'Team deleted successfully!';
           this.errorMessage = null;
-          this.loadTeams(); // Reload teams after deletion
+          this.loadUserTeams(); // Reload teams after deletion
         },
         error: (err) => {
           console.error('Failed to delete team', err);

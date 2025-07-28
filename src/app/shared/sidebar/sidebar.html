@@ -14,34 +14,39 @@
     Users
   </a>
 
-  <a *ngIf=" role === 'ORGANIZER'" mat-list-item routerLink="/dashboard/teams" routerLinkActive="active-link">
+  <a *ngIf="canAccessTeams && role !== 'ADMIN'" mat-list-item routerLink="/dashboard/teams" routerLinkActive="active-link">
     <mat-icon class="me-2">groups</mat-icon>
     Teams
   </a>
 
-  <a *ngIf="role === 'ORGANIZER'" mat-list-item routerLink="/dashboard/matches" routerLinkActive="active-link">
+  <a *ngIf="canAccessMatches && role !== 'ADMIN'" mat-list-item routerLink="/dashboard/matches" routerLinkActive="active-link">
     <mat-icon class="me-2">sports_soccer</mat-icon>
     Matches
   </a>
 
-  <a *ngIf="role === 'PLAYER'" mat-list-item routerLink="/dashboard/matches" routerLinkActive="active-link">
-    <mat-icon class="me-2">sports_soccer</mat-icon>
-    Matches
-  </a>
-
-  <a *ngIf="role === 'ADMIN' || role === 'ORGANIZER' || role === 'PLAYER'" mat-list-item routerLink="/dashboard/places" routerLinkActive="active-link">
+  <a *ngIf="canAccessPlaces" mat-list-item routerLink="/dashboard/places" routerLinkActive="active-link">
     <mat-icon class="me-2">location_on</mat-icon>
     Places
   </a>
 
-  <a *ngIf="role === 'ADMIN' || role === 'ORGANIZER' || role === 'PLAYER'" mat-list-item routerLink="/dashboard/bookings" routerLinkActive="active-link">
+  <a *ngIf="canAccessBookings && role === 'ADMIN'" mat-list-item routerLink="/dashboard/admin/bookings" routerLinkActive="active-link">
     <mat-icon class="me-2">event</mat-icon>
-    Bookings
+    Manage Bookings
   </a>
 
-  <a *ngIf="role === 'PLAYER'" mat-list-item routerLink="/dashboard/profile" routerLinkActive="active-link">
+  <a *ngIf="canAccessBookings && role !== 'ADMIN'" mat-list-item routerLink="/dashboard/bookings" routerLinkActive="active-link">
+    <mat-icon class="me-2">event</mat-icon>
+    My Bookings
+  </a>
+
+  <a *ngIf="canAccessProfile && role !== 'ADMIN'" mat-list-item routerLink="/dashboard/profile" routerLinkActive="active-link">
     <mat-icon class="me-2">person</mat-icon>
     Profile
+  </a>
+
+  <a *ngIf="effectiveRole === 'PLAYER' && role !== 'ADMIN'" mat-list-item routerLink="/dashboard/teams/create" routerLinkActive="active-link">
+    <mat-icon class="me-2">add_circle</mat-icon>
+    Create Team
   </a>
 </mat-nav-list>
 <ng-template #loginMsg>

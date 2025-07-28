@@ -1,5 +1,5 @@
-<ng-container [ngSwitch]="role">
+<ng-container [ngSwitch]="effectiveRole">
   <app-admin-dashboard *ngSwitchCase="'ADMIN'"></app-admin-dashboard>
-  <app-unified-dashboard *ngSwitchCase="'PLAYER'"></app-unified-dashboard>
   <app-unified-dashboard *ngSwitchCase="'ORGANIZER'"></app-unified-dashboard>
+  <app-unified-dashboard *ngSwitchCase="'PLAYER'"></app-unified-dashboard>
 </ng-container>

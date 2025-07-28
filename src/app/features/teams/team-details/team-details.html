@@ -1,11 +1,9 @@
 <section class="container p-3">
   <div class="top-header">
     <h2 class="page-title">Team Details</h2>
-   
   </div>
 
   <div class="form-card">
-    
     <div *ngIf="successMessage" class="success-message text-center" role="alert">
       {{ successMessage }}
     </div>
@@ -15,18 +13,23 @@
 
     <div *ngIf="team; else notFound" class="team-details-content">
       <!-- View Mode -->
-     <ng-container *ngIf="!isEditing">
-    <div class="team-name-row"> <!-- New div to contain name and edit icon -->
-      <h3 class="team-details-name">{{ team.name }}</h3>
-      <!-- Edit Icon Button - Visible only to Organizer, next to team name -->
-      <button *ngIf="isOrganizer" class="edit-icon-button" (click)="toggleEditMode()">
-        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z"/>
-        </svg>
-      </button>
-    </div>
-    <p class="team-details-description">{{ team.description || 'No description provided.' }}</p>
-  </ng-container>
+      <ng-container *ngIf="!isEditing">
+        <div class="team-name-row">
+          <h3 class="team-details-name">{{ team.name }}</h3>
+          <!-- Edit Icon Button - Visible only to Organizer, next to team name -->
+          <button *ngIf="isOrganizer" class="edit-icon-button" (click)="toggleEditMode()">
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z"/>
+            </svg>
+          </button>
+        </div>
+        <p class="team-details-description">{{ team.description || 'No description provided.' }}</p>
+        
+        <!-- Team Organizer Info -->
+        <div class="team-organizer-info">
+          <strong>Organizer:</strong> {{ team.organizerId ? 'User ID: ' + team.organizerId : 'Not assigned' }}
+        </div>
+      </ng-container>
 
       <!-- Edit Mode -->
       <ng-container *ngIf="isEditing">
@@ -54,7 +57,7 @@
         </form>
       </ng-container>
 
-      <!-- Players Section -->
+      <!-- Players Section (Dummy Data) -->
       <div class="players-section mt-6">
         <h4 class="players-section-title">Players ({{ players.length }})</h4>
         <div *ngIf="players.length === 0" class="no-players-message">
@@ -69,7 +72,7 @@
       </div>
 
       <div class="button-group mt-6">
-        <button (click)="goToInvitePlayer(team.id)" class="submit-button">Invite Player</button>
+        <button *ngIf="isOrganizer" (click)="goToInvitePlayer(team.id)" class="submit-button">Invite Player</button>
         <button (click)="goBackToList()" class="secondary-button ms-4">Back to Teams</button>
       </div>
     </div>

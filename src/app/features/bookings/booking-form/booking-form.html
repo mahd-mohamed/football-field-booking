@@ -1,1 +1,119 @@
-<p>booking-form works!</p>
+<div class="booking-form-container">
+  <mat-card class="booking-form-card">
+    <mat-card-header>
+      <mat-card-title>Create New Booking</mat-card-title>
+      <mat-card-subtitle>Select a place, team, date, and time slots for your booking</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()" class="booking-form">
+        
+        <!-- Success/Error Messages -->
+        <div *ngIf="successMessage" class="success-message" role="alert">
+          {{ successMessage }}
+        </div>
+        <div *ngIf="errorMessage" class="error-message" role="alert">
+          {{ errorMessage }}
+        </div>
+
+        <!-- Place Selection -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Select Place</mat-label>
+          <mat-select formControlName="place_id" (selectionChange)="onPlaceChange()">
+            <mat-option *ngFor="let place of places" [value]="place.id.toString()">
+              {{ place.name }} - {{ place.location }} ({{ place.type }})
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="bookingForm.get('place_id')?.hasError('required')">
+            Please select a place
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Team Selection -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Select Team</mat-label>
+          <mat-select formControlName="team_id">
+            <mat-option *ngFor="let team of userTeams" [value]="team.id">
+              {{ team.name }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="bookingForm.get('team_id')?.hasError('required')">
+            Please select a team
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Date Selection -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Select Date</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="date" (dateChange)="onDateChange()">
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          <mat-error *ngIf="bookingForm.get('date')?.hasError('required')">
+            Please select a date
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Available Time Slots -->
+        <div *ngIf="selectedPlace && availableTimeSlots.length > 0" class="time-slots-section">
+          <h3>Available Time Slots</h3>
+          <p class="time-slots-info">Click on time slots to select them for booking</p>
+          
+          <div class="time-slots-grid">
+            <mat-chip 
+              *ngFor="let slot of availableTimeSlots" 
+              [class.selected]="isSlotSelected(slot)"
+              [class.unavailable]="!slot.is_available"
+              (click)="toggleTimeSlot(slot)"
+              class="time-slot-chip">
+              {{ formatTime(slot.start_time) }} - {{ formatTime(slot.end_time) }}
+              <span *ngIf="!slot.is_available" class="unavailable-text">(Booked)</span>
+            </mat-chip>
+          </div>
+
+          <div *ngIf="selectedTimeSlots.length > 0" class="selected-slots">
+            <h4>Selected Time Slots ({{ selectedTimeSlots.length }})</h4>
+            <div class="selected-slots-list">
+              <mat-chip 
+                *ngFor="let slot of selectedTimeSlots" 
+                class="selected-slot-chip">
+                {{ formatTime(slot.start_time) }} - {{ formatTime(slot.end_time) }}
+              </mat-chip>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading-section">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading available time slots...</p>
+        </div>
+
+        <!-- No Time Slots Available -->
+        <div *ngIf="selectedPlace && !isLoading && availableTimeSlots.length === 0" class="no-slots-message">
+          <p>No time slots available for the selected date. Please try another date.</p>
+        </div>
+
+        <!-- Form Validation Error -->
+        <div *ngIf="bookingForm.get('time_slots')?.hasError('required') && bookingForm.get('time_slots')?.touched" class="validation-error">
+          Please select at least one time slot
+        </div>
+
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button mat-button type="button" (click)="onCancel()" [disabled]="isLoading">
+        Cancel
+      </button>
+      <button 
+        mat-raised-button 
+        color="primary" 
+        type="submit" 
+        (click)="onSubmit()"
+        [disabled]="bookingForm.invalid || isLoading || selectedTimeSlots.length === 0">
+        <mat-icon *ngIf="isLoading">hourglass_empty</mat-icon>
+        {{ isLoading ? 'Creating Booking...' : 'Create Booking' }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>
