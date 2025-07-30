@@ -1,1 +1,66 @@
-<p>match-participants works!</p>
+<div class="match-participants-container">
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="combinedData$ | async as data; else loadingOrError">
+    <div *ngIf="data.match">
+      <h2>Match Details</h2>
+      <div class="match-details">
+        <!-- Displaying properties available in IBookingMatch -->
+        <p><strong>Booking ID:</strong> {{ data.match.id }}</p>
+        <p><strong>Place ID:</strong> {{ data.match.placeId }}</p>
+        <p><strong>Organizer ID:</strong> {{ data.match.organizerId }}</p>
+        <p><strong>Team ID:</strong> {{ data.match.teamId }}</p>
+        <p><strong>Match Date:</strong> {{ data.match.matchDate | date:'medium' }}</p>
+        <p><strong>Start Time:</strong> {{ data.match.startTime }}</p>
+        <p><strong>End Time:</strong> {{ data.match.endTime }}</p>
+        <p><strong>Status:</strong> {{ data.match.status }}</p>
+        <p><strong>Created At:</strong> {{ data.match.createdAt | date:'medium' }}</p>
+      </div>
+
+      <!-- Corrected: Access teamId directly from data -->
+      <h3>List of Players (from Team ID: {{ data.teamId || 'Selected Team' }})</h3>
+      <div class="players-table-wrapper">
+        <table class="players-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Invite Button</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let player of data.players">
+              <td>{{ player.username }}</td>
+              <td>{{ player.email }}</td>
+              <td>{{ player.role }}</td>
+              <td>
+                <button
+                  (click)="invitePlayer(player.userId.toString())"
+                  [disabled]="isPlayerInvited(player.userId.toString(), data.participants)"
+                  [ngClass]="{'invited-button': isPlayerInvited(player.userId.toString(), data.participants)}"
+                >
+                  {{ isPlayerInvited(player.userId.toString(), data.participants) ? 'Invited' : 'Invite' }}
+                </button>
+              </td>
+              <td>{{ getPlayerInvitationStatus(player.userId.toString(), data.participants) }}</td>
+            </tr>
+            <tr *ngIf="data.players.length === 0">
+              <td colspan="5" class="no-players">No players found for this team.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div *ngIf="!data.match && !errorMessage" class="no-data">
+      No match data available. Please check the match ID.
+    </div>
+  </div>
+
+  <ng-template #loadingOrError>
+    <div class="loading-state" *ngIf="!errorMessage">Loading match and player data...</div>
+  </ng-template>
+</div>

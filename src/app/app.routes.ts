@@ -72,6 +72,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'teams/requests',
+        loadComponent: () =>
+          import('./features/teams/team-requests/team-requests').then(
+            (m) => m.TeamRequests
+          ),
+      },
+      {
         path: 'places',
         loadComponent: () =>
           import('./features/places/place-list/place-list').then(
@@ -111,6 +118,27 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/matches/match-list/match-list').then(
             (m) => m.MatchList
+          ),
+      },
+      {
+        path: 'matches/schedule',
+        loadComponent: () =>
+          import('./features/matches/schedule-match/schedule-match').then(
+            (m) => m.ScheduleMatch
+          ),
+      },
+      {
+        path: 'matches/:id',
+        loadComponent: () =>
+          import('./features/matches/match-details/match-details').then(
+            (m) => m.MatchDetails
+          ),
+      },
+      {
+        path: 'matches/:id/participants/:teamId',
+        loadComponent: () =>
+          import('./features/matches/match-participants/match-participants').then(
+            (m) => m.MatchParticipants
           ),
       },
       {

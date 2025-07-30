@@ -1,19 +1,15 @@
 <section class="container p-2 ">
   <div class="content-wrapper">
-    <div class="top-header">
-      <button class="back-arrow-button" (click)="goToHome()">
-        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M15.41 7.41L14 6L8 12L14 18L15.41 16.59L10.83 12L15.41 7.41Z"/>
-        </svg>
-      </button>
-      <h1 class="page-title">My Teams</h1>
-      <div class="top-right-buttons">
-        <button class="icon-button" (click)="goToCreateTeam()">
-          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
-          </svg>
-        </button>
+    <!-- Header Section -->
+    <div class="team-header">
+      <div class="header-content">
+        <h1>My Teams</h1>
+        <p>Create and manage your football teams</p>
       </div>
+      <button mat-raised-button color="primary" (click)="goToCreateTeam()" class="create-team-btn">
+        <mat-icon>add</mat-icon>
+        Create Team
+      </button>
     </div>
 
     <div class="main-content-area mb-2 ">

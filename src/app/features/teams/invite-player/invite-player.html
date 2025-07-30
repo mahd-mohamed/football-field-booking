@@ -1,34 +1,31 @@
-<section class="container">
-  <!-- Removed: Main User Icon -->
-  <!-- Removed: Background Football Field Elements -->
+<div class="invite-player-container">
+  <h2>Invite New Member to Team</h2>
 
-  <div class="card">
-    <div class="card-overlay"></div>
-    <div class="card-inner">
-      <div class="form-card">
-        <h2 class="card-title text-center">Invite Player to <br> "{{ teamName }}"</h2>
+  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
 
-        <div *ngIf="successMessage" class="success-message text-center" role="alert">
-          {{ successMessage }}
-        </div>
-        <div *ngIf="errorMessage" class="error-message-alert text-center" role="alert">
-          {{ errorMessage }}
-        </div>
-
-        <form [formGroup]="invitePlayerForm" (ngSubmit)="onSubmit()" class="form-content">
-          <div>
-            <label for="playerEmail" class="form-label">Player Email:</label>
-            <input type="email" id="playerEmail" formControlName="email" class="form-input" placeholder="Enter player's email">
-            <div *ngIf="f['email'].invalid && (f['email'].dirty || f['email'].touched)" class="error-text">
-              <div *ngIf="f['email'].errors?.['required']">Email is required.</div>
-              <div *ngIf="f['email'].errors?.['email']">Invalid email format.</div>
-            </div>
-          </div>
-
-          <button type="submit" class="submit-button" [disabled]="invitePlayerForm.invalid">Send Invitation</button>
-          <button type="button" (click)="goBackToTeamDetails()" class="secondary-button mt-4">Back to Team Details</button>
-        </form>
+  <form [formGroup]="inviteForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="email">User Email:</label>
+      <input type="email" id="email" formControlName="email" placeholder="Enter user's email">
+      <div *ngIf="inviteForm.get('email')?.invalid && (inviteForm.get('email')?.dirty || inviteForm.get('email')?.touched)" class="error-message-inline">
+        <div *ngIf="inviteForm.get('email')?.errors?.['required']">Email is required.</div>
+        <div *ngIf="inviteForm.get('email')?.errors?.['email']">Please enter a valid email address.</div>
       </div>
     </div>
-  </div>
-</section>
+
+    <!-- Role selection removed as per request -->
+    <!-- <div class="form-group">
+      <label for="role">Role:</label>
+      <select id="role" formControlName="role">
+        <option value="MEMBER">Member</option>
+        <option value="ORGANIZER">Organizer</option>
+      </select>
+    </div> -->
+
+    <div class="button-group">
+      <button type="submit" [disabled]="inviteForm.invalid" class="invite-button">Invite Member</button>
+      <button type="button" (click)="goBack()" class="back-button">Cancel</button>
+    </div>
+  </form>
+</div>

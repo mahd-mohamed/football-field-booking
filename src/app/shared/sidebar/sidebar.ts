@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
@@ -14,7 +14,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './sidebar.html',
   styleUrls: ['./sidebar.css'],
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   role: string | undefined;
   isOrganizerInAnyTeam: boolean = false;
   userTeams: any[] = [];
@@ -26,6 +26,20 @@ export class SidebarComponent implements OnInit {
 
   ngOnInit(): void {
     this.role = this.auth.getCurrentUser()?.role;
+    this.loadUserTeams();
+    
+    // Listen for team creation events to refresh sidebar state
+    window.addEventListener('teamCreated', this.handleTeamCreated.bind(this) as EventListener);
+  }
+
+  ngOnDestroy(): void {
+    // Clean up event listener
+    window.removeEventListener('teamCreated', this.handleTeamCreated.bind(this) as EventListener);
+  }
+
+  private handleTeamCreated(event: Event): void {
+    console.log('Team created event received, refreshing sidebar state...');
+    // Refresh user teams and organizer status
     this.loadUserTeams();
   }
 

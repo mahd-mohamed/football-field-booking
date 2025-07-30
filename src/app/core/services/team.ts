@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 
-export type TeamMemberRole = 'ORGANIZER' | 'PLAYER';
+export type TeamMemberRole = 'MEMBER' | 'ORGANIZER';
+export type TeamMemberStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 export interface ITeamMember {
   id: string;
@@ -10,16 +11,38 @@ export interface ITeamMember {
   username: string;
   email: string;
   role: TeamMemberRole;
-  joinedAt: string;
+  status: TeamMemberStatus;
+  invitedBy?: number; // FK to User(id)
+  createdAt: string;
+  respondedAt?: string;
 }
 
 export interface ITeam {
   id: string;
   name: string;
   description?: string;
-  organizerId?: string;
-  createdAt?: string;
+  createdBy: number; // FK to User(id)
+  createdAt: string;
   updatedAt?: string;
+}
+
+export interface ITeamInvite {
+  id: string;
+  teamId: string;
+  userId: number;
+  invitedBy: number;
+  status: TeamMemberStatus;
+  createdAt: string;
+  respondedAt?: string;
+}
+
+export interface ITeamRequest {
+  id: string;
+  teamId: string;
+  userId: number;
+  status: TeamMemberStatus;
+  createdAt: string;
+  respondedAt?: string;
 }
 
 @Injectable({
@@ -44,7 +67,7 @@ export class Team {
       const teamsString = localStorage.getItem('teams');
       if (teamsString) {
         const teams: ITeam[] = JSON.parse(teamsString);
-        const userTeams = teams.filter(team => team.organizerId === userId.toString());
+        const userTeams = teams.filter(team => team.createdBy === userId);
         return of(userTeams);
       }
       return of([]);
@@ -69,12 +92,12 @@ export class Team {
     }
   }
 
-  createTeam(team: Omit<ITeam, 'id'>, creatorId: number, creatorUsername: string, creatorEmail: string): Observable<ITeam> {
+  createTeam(team: Omit<ITeam, 'id' | 'createdAt'>, creatorId: number, creatorUsername: string, creatorEmail: string): Observable<ITeam> {
     try {
       const newTeam: ITeam = {
         ...team,
         id: Date.now().toString(),
-        organizerId: creatorId.toString(),
+        createdBy: creatorId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -85,7 +108,7 @@ export class Team {
       localStorage.setItem('teams', JSON.stringify(teams));
 
       // Add creator as organizer in team members
-      this.addTeamMember(newTeam.id, creatorId, creatorUsername, creatorEmail, 'ORGANIZER');
+      this.addTeamMember(newTeam.id, creatorId, creatorUsername, creatorEmail, 'ORGANIZER', 'APPROVED');
 
       return of(newTeam);
     } catch (error) {
@@ -133,7 +156,7 @@ export class Team {
   }
 
   // Team Member Management
-  addTeamMember(teamId: string, userId: number, username: string, email: string, role: TeamMemberRole): Observable<ITeamMember> {
+  addTeamMember(teamId: string, userId: number, username: string, email: string, role: TeamMemberRole, status: TeamMemberStatus = 'PENDING', invitedBy?: number): Observable<ITeamMember> {
     try {
       const newMember: ITeamMember = {
         id: Date.now().toString(),
@@ -142,7 +165,9 @@ export class Team {
         username,
         email,
         role,
-        joinedAt: new Date().toISOString()
+        status,
+        invitedBy,
+        createdAt: new Date().toISOString()
       };
 
       const membersString = localStorage.getItem('teamMembers');
@@ -182,7 +207,7 @@ export class Team {
         const teams: ITeam[] = JSON.parse(teamsString);
         
         const userTeamIds = members
-          .filter(m => m.userId === userId)
+          .filter(m => m.userId === userId && m.status === 'APPROVED')
           .map(m => m.teamId);
         
         const userTeams = teams.filter(t => userTeamIds.includes(t.id));
@@ -200,7 +225,7 @@ export class Team {
       const membersString = localStorage.getItem('teamMembers');
       if (membersString) {
         const members: ITeamMember[] = JSON.parse(membersString);
-        const member = members.find(m => m.userId === userId && m.teamId === teamId);
+        const member = members.find(m => m.userId === userId && m.teamId === teamId && m.status === 'APPROVED');
         return of(member?.role === 'ORGANIZER');
       }
       return of(false);
@@ -222,6 +247,184 @@ export class Team {
     } catch (error) {
       console.error('Error removing team member:', error);
       throw new Error('Failed to remove team member');
+    }
+  }
+
+  // Team Invite Management
+  invitePlayer(teamId: string, userId: number, invitedBy: number): Observable<ITeamInvite> {
+    try {
+      const invite: ITeamInvite = {
+        id: Date.now().toString(),
+        teamId,
+        userId,
+        invitedBy,
+        status: 'PENDING',
+        createdAt: new Date().toISOString()
+      };
+
+      const invitesString = localStorage.getItem('teamInvites');
+      const invites: ITeamInvite[] = invitesString ? JSON.parse(invitesString) : [];
+      invites.push(invite);
+      localStorage.setItem('teamInvites', JSON.stringify(invites));
+
+      return of(invite);
+    } catch (error) {
+      console.error('Error inviting player:', error);
+      throw new Error('Failed to invite player');
+    }
+  }
+
+  invitePlayerByEmail(teamId: string, email: string, invitedBy: number): Observable<ITeamInvite> {
+    try {
+      // Find user by email
+      const usersString = localStorage.getItem('users');
+      const users: any[] = usersString ? JSON.parse(usersString) : [];
+      const user = users.find(u => u.email === email);
+      
+      if (!user) {
+        throw new Error('User with this email not found');
+      }
+
+      const invite: ITeamInvite = {
+        id: Date.now().toString(),
+        teamId,
+        userId: user.id,
+        invitedBy,
+        status: 'PENDING',
+        createdAt: new Date().toISOString()
+      };
+
+      const invitesString = localStorage.getItem('teamInvites');
+      const invites: ITeamInvite[] = invitesString ? JSON.parse(invitesString) : [];
+      invites.push(invite);
+      localStorage.setItem('teamInvites', JSON.stringify(invites));
+
+      return of(invite);
+    } catch (error) {
+      console.error('Error inviting player by email:', error);
+      throw new Error('Failed to invite player');
+    }
+  }
+
+  getTeamInvites(teamId: string): Observable<ITeamInvite[]> {
+    try {
+      const invitesString = localStorage.getItem('teamInvites');
+      if (invitesString) {
+        const invites: ITeamInvite[] = JSON.parse(invitesString);
+        const teamInvites = invites.filter(i => i.teamId === teamId);
+        return of(teamInvites);
+      }
+      return of([]);
+    } catch (error) {
+      console.error('Error loading team invites:', error);
+      return of([]);
+    }
+  }
+
+  getUserInvites(userId: number): Observable<ITeamInvite[]> {
+    try {
+      const invitesString = localStorage.getItem('teamInvites');
+      if (invitesString) {
+        const invites: ITeamInvite[] = JSON.parse(invitesString);
+        const userInvites = invites.filter(i => i.userId === userId);
+        return of(userInvites);
+      }
+      return of([]);
+    } catch (error) {
+      console.error('Error loading user invites:', error);
+      return of([]);
+    }
+  }
+
+  respondToInvite(inviteId: string, status: 'APPROVED' | 'REJECTED'): Observable<void> {
+    try {
+      const invitesString = localStorage.getItem('teamInvites');
+      if (invitesString) {
+        const invites: ITeamInvite[] = JSON.parse(invitesString);
+        const inviteIndex = invites.findIndex(i => i.id === inviteId);
+        
+        if (inviteIndex !== -1) {
+          invites[inviteIndex].status = status;
+          invites[inviteIndex].respondedAt = new Date().toISOString();
+          localStorage.setItem('teamInvites', JSON.stringify(invites));
+
+          // If approved, add to team members
+          if (status === 'APPROVED') {
+            const invite = invites[inviteIndex];
+            // You would need to get user details here
+            this.addTeamMember(invite.teamId, invite.userId, 'User', 'user@example.com', 'MEMBER', 'APPROVED', invite.invitedBy);
+          }
+        }
+      }
+      return of(void 0);
+    } catch (error) {
+      console.error('Error responding to invite:', error);
+      throw new Error('Failed to respond to invite');
+    }
+  }
+
+  // Team Request Management
+  requestToJoinTeam(teamId: string, userId: number): Observable<ITeamRequest> {
+    try {
+      const request: ITeamRequest = {
+        id: Date.now().toString(),
+        teamId,
+        userId,
+        status: 'PENDING',
+        createdAt: new Date().toISOString()
+      };
+
+      const requestsString = localStorage.getItem('teamRequests');
+      const requests: ITeamRequest[] = requestsString ? JSON.parse(requestsString) : [];
+      requests.push(request);
+      localStorage.setItem('teamRequests', JSON.stringify(requests));
+
+      return of(request);
+    } catch (error) {
+      console.error('Error requesting to join team:', error);
+      throw new Error('Failed to request to join team');
+    }
+  }
+
+  getTeamRequests(teamId: string): Observable<ITeamRequest[]> {
+    try {
+      const requestsString = localStorage.getItem('teamRequests');
+      if (requestsString) {
+        const requests: ITeamRequest[] = JSON.parse(requestsString);
+        const teamRequests = requests.filter(r => r.teamId === teamId);
+        return of(teamRequests);
+      }
+      return of([]);
+    } catch (error) {
+      console.error('Error loading team requests:', error);
+      return of([]);
+    }
+  }
+
+  respondToRequest(requestId: string, status: 'APPROVED' | 'REJECTED'): Observable<void> {
+    try {
+      const requestsString = localStorage.getItem('teamRequests');
+      if (requestsString) {
+        const requests: ITeamRequest[] = JSON.parse(requestsString);
+        const requestIndex = requests.findIndex(r => r.id === requestId);
+        
+        if (requestIndex !== -1) {
+          requests[requestIndex].status = status;
+          requests[requestIndex].respondedAt = new Date().toISOString();
+          localStorage.setItem('teamRequests', JSON.stringify(requests));
+
+          // If approved, add to team members
+          if (status === 'APPROVED') {
+            const request = requests[requestIndex];
+            // You would need to get user details here
+            this.addTeamMember(request.teamId, request.userId, 'User', 'user@example.com', 'MEMBER', 'APPROVED');
+          }
+        }
+      }
+      return of(void 0);
+    } catch (error) {
+      console.error('Error responding to request:', error);
+      throw new Error('Failed to respond to request');
     }
   }
 }

@@ -1,1 +1,110 @@
-<p>match-details works!</p>
+<div class="match-details-container">
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <p>Loading match details...</p>
+  </div>
+
+  <div *ngIf="match && !isLoading" class="match-content">
+    <div class="header">
+      <h1>Match Details</h1>
+      <p>{{ match.matchDate | date:'mediumDate' }} at {{ match.startTime }} - {{ match.endTime }}</p>
+    </div>
+
+    <div class="match-info-card">
+      <div class="info-section">
+        <h2>Basic Information</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Match ID:</span>
+            <span class="value">{{ match.id }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Status:</span>
+            <span class="value status-{{ getStatusColor(match.status) }}">{{ match.status }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Place ID:</span>
+            <span class="value">{{ match.placeId }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Team ID:</span>
+            <span class="value">{{ match.teamId }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Organizer ID:</span>
+            <span class="value">{{ match.organizerId }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Schedule Details</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Match Date:</span>
+            <span class="value">{{ match.matchDate | date:'fullDate' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Start Time:</span>
+            <span class="value">{{ match.startTime }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">End Time:</span>
+            <span class="value">{{ match.endTime }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Participant Requirements</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Minimum Participants:</span>
+            <span class="value">{{ match.minParticipants }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Maximum Participants:</span>
+            <span class="value">{{ match.maxParticipants }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section" *ngIf="match.description">
+        <h2>Description</h2>
+        <div class="description">
+          <p>{{ match.description }}</p>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Timestamps</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Created At:</span>
+            <span class="value">{{ match.createdAt | date:'medium' }}</span>
+          </div>
+          <div class="info-item" *ngIf="match.updatedAt">
+            <span class="label">Last Updated:</span>
+            <span class="value">{{ match.updatedAt | date:'medium' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions-section">
+      <button class="action-button primary" (click)="goToParticipants()">
+        View Participants
+      </button>
+      <button class="action-button secondary" (click)="goBack()">
+        Back to Matches
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!match && !isLoading && !errorMessage" class="no-data">
+    <p>No match data available.</p>
+  </div>
+</div>

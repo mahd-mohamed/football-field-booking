@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -194,4 +194,6 @@ export class AdminBookingManagementComponent implements OnInit {
   canCancel(booking: IBooking): boolean {
     return booking.status === 'PENDING_PAYMENT' || booking.status === 'CONFIRMED';
   }
+
+
 } 

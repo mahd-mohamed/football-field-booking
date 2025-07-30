@@ -2,40 +2,34 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { Team, ITeam } from '../../../core/services/team';
-import { Auth } from '../../../core/services/auth';
+import { Team } from '../../../core/services/team';
+import { ITeam } from '../../../core/services/team';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { NgIf,NgFor } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-team-list',
-  standalone: true,
   templateUrl: './team-list.html',
   styleUrls: ['./team-list.css'],
   imports: [
-    NgIf,
-    NgFor,
+    CommonModule,
     MatCardModule,
-    MatButtonModule
+    MatButtonModule,
+    MatIconModule
   ]
 })
 export class TeamList implements OnInit, OnDestroy {
   teams: ITeam[] = []; // Use ITeam interface
   successMessage: string | null = null;
   errorMessage: string | null = null;
-  currentUser: any;
   private destroy$ = new Subject<void>();
 
-  constructor(
-    private teamService: Team, 
-    private router: Router,
-    private authService: Auth
-  ) {}
+  constructor(private teamService: Team, private router: Router) {}
 
   ngOnInit(): void {
-    this.currentUser = this.authService.getCurrentUser();
-    this.loadUserTeams();
+    this.loadTeams();
   }
 
   ngOnDestroy(): void {
@@ -43,23 +37,16 @@ export class TeamList implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  loadUserTeams(): void {
-    if (!this.currentUser) {
-      this.errorMessage = 'User not authenticated. Please login again.';
-      return;
-    }
-
-    // Load teams created by the current user
-    this.teamService.getTeamsByCreator(this.currentUser.id).pipe(takeUntil(this.destroy$)).subscribe({
+  loadTeams(): void {
+    this.teamService.getTeams().pipe(takeUntil(this.destroy$)).subscribe({
       next: (teams) => {
         this.teams = teams;
         this.successMessage = null;
         this.errorMessage = null;
-        console.log('Loaded teams created by user:', this.currentUser.username, teams);
       },
       error: (err) => {
-        console.error('Failed to load user teams', err);
-        this.errorMessage = 'Failed to load your teams. Please try again.';
+        console.error('Failed to load teams', err);
+        this.errorMessage = 'Failed to load teams. Please try again.';
         this.successMessage = null;
       }
     });
@@ -86,7 +73,7 @@ export class TeamList implements OnInit, OnDestroy {
         next: () => {
           this.successMessage = 'Team deleted successfully!';
           this.errorMessage = null;
-          this.loadUserTeams(); // Reload teams after deletion
+          this.loadTeams(); // Reload teams after deletion
         },
         error: (err) => {
           console.error('Failed to delete team', err);
@@ -98,7 +85,7 @@ export class TeamList implements OnInit, OnDestroy {
   }
 
   goToHome(): void {
-    // Assuming '/home' is your actual home page. Adjust if needed.
-    this.router.navigate(['/']);
+    // Navigate to dashboard instead of home page
+    this.router.navigate(['/dashboard']);
   }
 }
