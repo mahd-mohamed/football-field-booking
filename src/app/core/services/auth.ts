@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Team } from './team';
 
 export type UserRole = 'PLAYER' | 'ORGANIZER' | 'ADMIN';
 export interface User {
@@ -19,11 +20,41 @@ export class Auth {
     { id: 3, username: 'player', email: 'player@player.com', password: 'player', role: 'PLAYER' }
   ];
   private currentUserKey = 'currentUser';
+  private usersKey = 'users';
   private nextId = 4;
 
+  constructor(private teamService: Team) {
+    this.initializeUsers();
+  }
+
+  private initializeUsers(): void {
+    const storedUsers = localStorage.getItem(this.usersKey);
+    if (!storedUsers) {
+      // Initialize with default users if no users exist in localStorage
+      localStorage.setItem(this.usersKey, JSON.stringify(this.users));
+    } else {
+      // Load users from localStorage
+      this.users = JSON.parse(storedUsers);
+      // Update nextId based on existing users
+      if (this.users.length > 0) {
+        this.nextId = Math.max(...this.users.map(u => u.id)) + 1;
+      }
+    }
+  }
+
+  private getUsers(): User[] {
+    const storedUsers = localStorage.getItem(this.usersKey);
+    return storedUsers ? JSON.parse(storedUsers) : [];
+  }
+
+  private saveUsers(users: User[]): void {
+    localStorage.setItem(this.usersKey, JSON.stringify(users));
+  }
+
   register(user: { username: string; email: string; password: string }): boolean {
+    const users = this.getUsers();
     if (
-      this.users.find(
+      users.find(
         u => u.username === user.username || u.email === user.email
       )
     ) {
@@ -36,13 +67,15 @@ export class Auth {
       password: user.password,
       role: 'PLAYER'
     };
-    this.users.push(newUser);
+    users.push(newUser);
+    this.saveUsers(users);
     this.setCurrentUser(newUser);
     return true;
   }
 
   login(identifier: string, password: string): boolean {
-    const user = this.users.find(
+    const users = this.getUsers();
+    const user = users.find(
       u => (u.username === identifier || u.email === identifier) && u.password === password
     );
     if (user) {
@@ -68,5 +101,18 @@ export class Auth {
   isOrganizer(): boolean {
     const currentUser = this.getCurrentUser();
     return currentUser?.role === 'ORGANIZER' || currentUser?.role === 'ADMIN';
+  }
+
+  // Get effective role based on user's base role and team ownership
+  getEffectiveRole(): string {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser) return 'PLAYER';
+
+    if (currentUser.role === 'ADMIN') return 'ADMIN';
+    if (currentUser.role === 'ORGANIZER') return 'ORGANIZER';
+
+    // For players, check if they are organizers in any team
+    // This is a simplified check - in a real app, you'd want to cache this
+    return 'PLAYER'; // Default to PLAYER, will be updated by components that need it
   }
 }

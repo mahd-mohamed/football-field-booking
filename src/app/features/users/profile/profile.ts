@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Auth, User } from '../../../core/services/auth';
+import { Team } from '../../../core/services/team';
 
 interface UserProfile extends User {
   status?: 'ACTIVE' | 'INACTIVE'; // Extended to include status
@@ -37,6 +38,8 @@ export class Profile implements OnInit {
   isEditing = false;
   isLoading = false;
   isSaving = false;
+  effectiveRole: string = 'PLAYER';
+  userTeams: any[] = [];
 
   // Form data for editing
   editForm = {
@@ -48,6 +51,7 @@ export class Profile implements OnInit {
 
   constructor(
     private authService: Auth,
+    private teamService: Team,
     private snackBar: MatSnackBar
   ) {}
 
@@ -68,9 +72,55 @@ export class Profile implements OnInit {
         status: 'ACTIVE' // Default to ACTIVE since User type doesn't have status
       };
       this.editForm.username = this.currentUser.username;
+      
+      // Load user teams and determine effective role
+      this.loadUserTeams();
     }
     
     this.isLoading = false;
+  }
+
+  private loadUserTeams(): void {
+    if (!this.currentUser) return;
+
+    // Load teams created by the current user
+    this.teamService.getTeamsByCreator(this.currentUser.id).subscribe({
+      next: (teams) => {
+        this.userTeams = teams;
+        this.checkIfUserIsOrganizer();
+      },
+      error: (error) => {
+        console.error('Error loading user teams:', error);
+        this.setEffectiveRole();
+      }
+    });
+  }
+
+  private checkIfUserIsOrganizer(): void {
+    if (!this.currentUser) return;
+
+    // Check if user is organizer in any team
+    const checkPromises = this.userTeams.map(team => 
+      this.teamService.isUserTeamOrganizer(this.currentUser!.id, team.id).toPromise()
+    );
+
+    Promise.all(checkPromises).then(results => {
+      const isOrganizerInAnyTeam = results.some(isOrganizer => isOrganizer);
+      this.setEffectiveRole(isOrganizerInAnyTeam);
+    }).catch(error => {
+      console.error('Error checking organizer status:', error);
+      this.setEffectiveRole();
+    });
+  }
+
+  private setEffectiveRole(isOrganizerInAnyTeam: boolean = false): void {
+    if (this.currentUser?.role === 'ADMIN') {
+      this.effectiveRole = 'ADMIN';
+    } else if (this.currentUser?.role === 'ORGANIZER' || isOrganizerInAnyTeam) {
+      this.effectiveRole = 'ORGANIZER';
+    } else {
+      this.effectiveRole = 'PLAYER';
+    }
   }
 
   startEditing(): void {
@@ -119,6 +169,12 @@ export class Profile implements OnInit {
         this.snackBar.open('New password must be at least 6 characters', 'Close', { duration: 3000 });
         return;
       }
+      
+      // Validate current password
+      if (this.editForm.currentPassword !== this.currentUser.password) {
+        this.snackBar.open('Current password is incorrect', 'Close', { duration: 3000 });
+        return;
+      }
     }
 
     this.isSaving = true;
@@ -129,13 +185,24 @@ export class Profile implements OnInit {
         // Update user data
         this.currentUser.username = this.editForm.username;
         
+        // Update password if provided
+        if (this.editForm.newPassword) {
+          this.currentUser.password = this.editForm.newPassword;
+        }
+        
         // Update in localStorage (simulating database update)
         const users = JSON.parse(localStorage.getItem('users') || '[]');
         const userIndex = users.findIndex((u: any) => u.id === this.currentUser?.id);
         if (userIndex !== -1) {
           users[userIndex].username = this.editForm.username;
+          if (this.editForm.newPassword) {
+            users[userIndex].password = this.editForm.newPassword;
+          }
           localStorage.setItem('users', JSON.stringify(users));
         }
+
+        // Update current user in localStorage
+        localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
 
         this.isEditing = false;
         this.isSaving = false;
