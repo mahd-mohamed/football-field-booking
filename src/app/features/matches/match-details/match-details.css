@@ -9,15 +9,23 @@
   color: #333;
 }
 
+/* Success and Error Messages */
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  border: 1px solid #c3e6cb;
+}
+
 .error-message {
   background-color: #f8d7da;
   color: #721c24;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
   border: 1px solid #f5c6cb;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 20px;
-  text-align: center;
-  font-weight: 500;
 }
 
 .loading-state {
@@ -127,26 +135,117 @@
   color: #333;
 }
 
-.actions-section {
+/* Participation Actions */
+.participation-actions {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.participation-actions h3 {
+  color: #495057;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.participation-actions p {
+  color: #6c757d;
+  margin-bottom: 16px;
+}
+
+.action-buttons {
   display: flex;
-  gap: 15px;
-  justify-content: center;
-  margin-top: 30px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
-.action-button {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 6px;
-  font-size: 1em;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
+/* Participation Status */
+.participation-status {
+  background-color: #e9ecef;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.participation-status h3 {
+  color: #495057;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.status-badge {
   display: inline-block;
-  text-align: center;
-  min-width: 150px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.status-accepted {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-declined {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-expired {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-invited {
+  background-color: #cce7ff;
+  color: #004085;
+}
+
+.participation-status p {
+  color: #6c757d;
+  margin: 0;
+}
+
+/* Organizer Actions */
+.organizer-actions {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.organizer-actions h3 {
+  color: #856404;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+/* General Actions */
+.general-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+/* Action Buttons */
+.action-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .action-button.primary {
@@ -156,7 +255,6 @@
 
 .action-button.primary:hover {
   background-color: #0056b3;
-  transform: translateY(-2px);
 }
 
 .action-button.secondary {
@@ -166,7 +264,6 @@
 
 .action-button.secondary:hover {
   background-color: #545b62;
-  transform: translateY(-2px);
 }
 
 .no-data {
@@ -213,6 +310,19 @@
   .action-button {
     width: 100%;
     max-width: 300px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .general-actions {
+    flex-direction: column;
+  }
+  
+  .action-button {
+    width: 100%;
+    justify-content: center;
   }
 }
 

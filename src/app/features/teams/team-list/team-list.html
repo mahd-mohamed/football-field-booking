@@ -32,7 +32,7 @@
             <mat-card-subtitle class="team-item-description">{{ team.description || 'No description provided.' }}</mat-card-subtitle>
           </mat-card-header>
           <mat-card-actions align="end">
-            <button mat-button class="delete-button" (click)="deleteTeam(team.id); $event.stopPropagation()">Delete</button>
+            <button *ngIf="isTeamOrganizer(team)" mat-button class="delete-button" (click)="deleteTeam(team.id); $event.stopPropagation()">Delete</button>
           </mat-card-actions>
         </mat-card>
       </ng-template>

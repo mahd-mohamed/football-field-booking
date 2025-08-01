@@ -56,7 +56,7 @@
         <!-- Available Time Slots -->
         <div *ngIf="selectedPlace && availableTimeSlots.length > 0" class="time-slots-section">
           <h3>Available Time Slots</h3>
-          <p class="time-slots-info">Click on time slots to select them for booking</p>
+          <p class="time-slots-info">Click on time slots to select them for booking. Consecutive slots will be grouped into a single booking.</p>
           
           <div class="time-slots-grid">
             <mat-chip 
@@ -70,6 +70,7 @@
             </mat-chip>
           </div>
 
+          <!-- Selected Time Slots Summary -->
           <div *ngIf="selectedTimeSlots.length > 0" class="selected-slots">
             <h4>Selected Time Slots ({{ selectedTimeSlots.length }})</h4>
             <div class="selected-slots-list">
@@ -78,6 +79,36 @@
                 class="selected-slot-chip">
                 {{ formatTime(slot.start_time) }} - {{ formatTime(slot.end_time) }}
               </mat-chip>
+            </div>
+          </div>
+
+          <!-- Booking Groups -->
+          <div *ngIf="bookingGroups.length > 0" class="booking-groups">
+            <h4>Booking Summary</h4>
+            <div class="booking-groups-list">
+              <div *ngFor="let group of bookingGroups; let i = index" class="booking-group">
+                <div class="booking-group-header">
+                  <span class="booking-number">Booking {{ i + 1 }}</span>
+                  <span class="booking-duration">{{ formatDuration(group.duration) }}</span>
+                </div>
+                <div class="booking-group-time">
+                  {{ formatTime(group.start_time) }} - {{ formatTime(group.end_time) }}
+                </div>
+                <div class="booking-group-slots">
+                  <small>Includes {{ group.slots.length }} time slot(s):</small>
+                  <div class="group-slots-list">
+                    <mat-chip 
+                      *ngFor="let slot of group.slots" 
+                      class="group-slot-chip">
+                      {{ formatTime(slot.start_time) }} - {{ formatTime(slot.end_time) }}
+                    </mat-chip>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="total-summary">
+              <strong>Total: {{ bookingGroups.length }} booking(s) for {{ formatDuration(getTotalDuration()) }}</strong>
             </div>
           </div>
         </div>
@@ -110,7 +141,7 @@
         color="primary" 
         type="submit" 
         (click)="onSubmit()"
-        [disabled]="bookingForm.invalid || isLoading || selectedTimeSlots.length === 0">
+        [disabled]="bookingForm.invalid || isLoading || bookingGroups.length === 0">
         <mat-icon *ngIf="isLoading">hourglass_empty</mat-icon>
         {{ isLoading ? 'Creating Booking...' : 'Create Booking' }}
       </button>

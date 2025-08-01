@@ -3,13 +3,15 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, NgIf, NgFor, DatePipe } from '@angular/common'; 
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
+import { MatIconModule } from '@angular/material/icon';
 
 import { ITeam, Team, ITeamMember } from '../../../core/services/team';
-import { User, Auth } from '../../../core/services/auth'; 
+import { User, Auth } from '../../../core/services/auth';
+import { Notification } from '../../../core/services/notification';
 
 @Component({
   selector: 'app-team-details',
-  imports: [CommonModule, ReactiveFormsModule, DatePipe], 
+  imports: [CommonModule, ReactiveFormsModule, DatePipe, MatIconModule], 
   templateUrl: './team-details.html', 
   styleUrls: ['./team-details.css'] 
 })
@@ -20,6 +22,8 @@ export class TeamDetails implements OnInit, OnDestroy {
   errorMessage: string | null = null;
   successMessage: string | null = null;
   isOrganizer: boolean = false;
+  isTeamMember: boolean = false;
+  hasRequestedJoin: boolean = false;
   isEditing: boolean = false;
   editTeamForm!: FormGroup;
 
@@ -32,14 +36,12 @@ export class TeamDetails implements OnInit, OnDestroy {
     private router: Router,
     private teamService: Team,
     private authService: Auth,
+    private notificationService: Notification,
     private fb: FormBuilder
   ) { }
 
   ngOnInit(): void {
     console.log('TeamDetailsComponent: Initialized.');
-
-    this.isOrganizer = this.authService.isOrganizer();
-    console.log('TeamDetailsComponent: Is current user an organizer?', this.isOrganizer);
 
     this.editTeamForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
@@ -53,6 +55,7 @@ export class TeamDetails implements OnInit, OnDestroy {
         this.teamId = teamId;
         this.loadTeamDetails(teamId);
         this.loadTeamMembers(teamId);
+        this.checkUserTeamStatus(teamId);
       } else {
         this.errorMessage = 'Team ID not provided in URL.';
         console.error('TeamDetailsComponent: Team ID is missing in the URL. Redirecting to team list.');
@@ -77,6 +80,9 @@ export class TeamDetails implements OnInit, OnDestroy {
             name: this.team.name,
             description: this.team.description
           });
+          
+          // Check if current user is the team organizer (creator)
+          this.checkIfUserIsTeamOrganizer(team);
         } else {
           this.errorMessage = 'Team not found.';
           console.warn(`TeamDetailsComponent: Team with ID "${id}" not found. Redirecting to team list.`);
@@ -91,6 +97,17 @@ export class TeamDetails implements OnInit, OnDestroy {
     });
   }
 
+  checkIfUserIsTeamOrganizer(team: ITeam): void {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) return;
+
+    // Check if current user is the team creator
+    this.isOrganizer = currentUser.id === team.createdBy;
+    console.log('TeamDetailsComponent: Current user is team organizer?', this.isOrganizer);
+    console.log('TeamDetailsComponent: Current user ID:', currentUser.id);
+    console.log('TeamDetailsComponent: Team creator ID:', team.createdBy);
+  }
+
   loadTeamMembers(teamId: string): void {
     console.log(`TeamDetailsComponent: Attempting to load team members for team ID: "${teamId}"`);
     this.teamService.getTeamMembers(teamId).pipe(takeUntil(this.destroy$)).subscribe({
@@ -99,15 +116,79 @@ export class TeamDetails implements OnInit, OnDestroy {
         console.log('TeamDetailsComponent: Team members loaded:', this.teamMembers);
         // For now, we'll use mock user data since getPlayersByTeamId doesn't exist
         this.usersInTeam = [
-          { id: 1, username: 'admin', email: 'admin@admin.com', password: 'admin1', role: 'ADMIN' },
-          { id: 2, username: 'organizer', email: 'org@org.com', password: 'organizer', role: 'ORGANIZER' },
-          { id: 3, username: 'player', email: 'player@player.com', password: 'player', role: 'PLAYER' }
+          { id: 1, username: 'admin', email: 'admin@admin.com', password: 'admin1', role: 'ADMIN', status: 'ACTIVE' },
+          { id: 2, username: 'organizer', email: 'org@org.com', password: 'organizer', role: 'ORGANIZER', status: 'ACTIVE' },
+          { id: 3, username: 'player', email: 'player@player.com', password: 'player', role: 'USER', status: 'ACTIVE' }
         ];
         console.log('TeamDetailsComponent: Mock user details for members loaded:', this.usersInTeam);
       },
       error: (err: any) => {
         console.error('TeamDetailsComponent: Error loading team members:', err);
         this.errorMessage = `Failed to load team members: ${err.message || 'Unknown error'}`;
+      }
+    });
+  }
+
+  checkUserTeamStatus(teamId: string): void {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) return;
+
+    this.teamService.getTeamMembers(teamId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (members) => {
+        const userMember = members.find(m => m.userId === currentUser.id);
+        if (userMember) {
+          this.isTeamMember = userMember.status === 'APPROVED';
+          this.hasRequestedJoin = userMember.status === 'PENDING';
+        } else {
+          this.isTeamMember = false;
+          this.hasRequestedJoin = false;
+        }
+      },
+      error: (err) => {
+        console.error('Error checking user team status:', err);
+      }
+    });
+  }
+
+  requestToJoinTeam(): void {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser || !this.team) return;
+
+    console.log('Sending join request for team:', this.team.id);
+    console.log('Current user:', currentUser);
+
+    this.teamService.addTeamMember(
+      this.team.id,
+      currentUser.id,
+      currentUser.username,
+      currentUser.email,
+      'MEMBER',
+      'PENDING'
+    ).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (member) => {
+        console.log('Join request created successfully:', member);
+        this.hasRequestedJoin = true;
+        this.teamMembers.push(member);
+
+        // Debug: Check if member was saved to localStorage
+        const membersString = localStorage.getItem('teamMembers');
+        const members = membersString ? JSON.parse(membersString) : [];
+        console.log('All team members after adding request:', members);
+
+        // Create notification for team organizer
+        this.notificationService.createTeamJoinRequestNotification(
+          this.team!.createdBy,
+          this.team!.id,
+          this.team!.name,
+          currentUser.username
+        ).subscribe();
+
+        this.successMessage = 'Join request sent successfully! The team organizer will review your request.';
+        setTimeout(() => this.successMessage = null, 5000);
+      },
+      error: (err) => {
+        console.error('Failed to send join request:', err);
+        this.errorMessage = 'Failed to send join request. Please try again.';
       }
     });
   }
@@ -167,8 +248,37 @@ export class TeamDetails implements OnInit, OnDestroy {
   }
 
   goToInvitePlayer(teamId: string): void {
-    console.log(`TeamDetailsComponent: Navigating to invite player page for team ID: ${teamId}`);
-    this.router.navigate(['/dashboard/teams', teamId, 'invite']);
+    // Route is: teams/:id/invite
+    console.log(`Navigating to invite player for team: ${teamId}`);
+    this.router.navigate(['/dashboard/teams', teamId, 'invite'])
+      .then(() => console.log('Navigation to invite player successful'))
+      .catch(err => {
+        console.error('Navigation to invite player failed:', err);
+        this.errorMessage = 'Failed to navigate to invite player page';
+      });
+  }
+
+  goToTeamRequests(): void {
+    // Route is: teams/requests
+    console.log('Navigating to team requests');
+    this.router.navigate(['/dashboard/teams/requests'])
+      .then(() => console.log('Navigation to team requests successful'))
+      .catch(err => {
+        console.error('Navigation to team requests failed:', err);
+        this.errorMessage = 'Failed to navigate to team requests page';
+      });
+  }
+
+  goToTeamMembers(): void {
+    // Stay on current page but scroll to members section
+    // Since we're already on the team details page, just stay here
+    // The members section is already visible on this page
+    console.log('Already on team members page - members section is visible');
+    // Optionally scroll to members section
+    const membersSection = document.querySelector('.team-members-list');
+    if (membersSection) {
+      membersSection.scrollIntoView({ behavior: 'smooth' });
+    }
   }
 
   navigateToMatchParticipants(matchId: string): void {

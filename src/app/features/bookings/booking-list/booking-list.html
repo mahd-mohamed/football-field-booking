@@ -69,6 +69,10 @@
               <mat-icon>visibility</mat-icon>
               View Details
             </button>
+            <button mat-button color="accent" (click)="viewMatchParticipants(booking)">
+              <mat-icon>group</mat-icon>
+              View Participants
+            </button>
             <button 
               *ngIf="canCancelBooking(booking)" 
               mat-button 

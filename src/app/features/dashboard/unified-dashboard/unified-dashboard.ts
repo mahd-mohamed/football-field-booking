@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { Auth } from '../../../core/services/auth';
 import { Team } from '../../../core/services/team';
 
 @Component({
   selector: 'app-unified-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './unified-dashboard.html',
   styleUrl: './unified-dashboard.css'
 })

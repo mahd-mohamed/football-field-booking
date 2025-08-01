@@ -95,12 +95,65 @@
     </div>
 
     <div class="actions-section">
-      <button class="action-button primary" (click)="goToParticipants()">
-        View Participants
-      </button>
-      <button class="action-button secondary" (click)="goBack()">
-        Back to Matches
-      </button>
+      <!-- Success/Error Messages -->
+      <div *ngIf="successMessage" class="success-message" role="alert">
+        {{ successMessage }}
+      </div>
+      
+      <div *ngIf="errorMessage" class="error-message" role="alert">
+        {{ errorMessage }}
+      </div>
+
+      <!-- User Participation Actions (for invited users) -->
+      <div *ngIf="userParticipation && userParticipation.status === 'INVITED'" class="participation-actions">
+        <h3>Match Invitation</h3>
+        <p>You have been invited to participate in this match.</p>
+        <div class="action-buttons">
+          <button class="action-button primary" (click)="acceptInvitation()">
+            Accept Invitation
+          </button>
+          <button class="action-button secondary" (click)="declineInvitation()">
+            Decline Invitation
+          </button>
+        </div>
+      </div>
+
+      <!-- User Participation Status (for users who have responded) -->
+      <div *ngIf="userParticipation && userParticipation.status !== 'INVITED'" class="participation-status">
+        <h3>Your Participation Status</h3>
+        <div class="status-badge" [ngClass]="'status-' + userParticipation.status.toLowerCase()">
+          {{ userParticipation.status }}
+        </div>
+        <p *ngIf="userParticipation.status === 'ACCEPTED'">
+          You have accepted this match invitation. See you there!
+        </p>
+        <p *ngIf="userParticipation.status === 'DECLINED'">
+          You have declined this match invitation.
+        </p>
+        <p *ngIf="userParticipation.status === 'EXPIRED'">
+          This invitation has expired.
+        </p>
+      </div>
+
+      <!-- Organizer Actions -->
+      <div *ngIf="isOrganizer" class="organizer-actions">
+        <h3>Organizer Actions</h3>
+        <div class="action-buttons">
+          <button class="action-button primary" (click)="goToParticipants()">
+            Manage Participants
+          </button>
+        </div>
+      </div>
+
+      <!-- General Actions -->
+      <div class="general-actions">
+        <button *ngIf="!isOrganizer" class="action-button primary" (click)="goToParticipants()">
+          View Participants
+        </button>
+        <button class="action-button secondary" (click)="goBack()">
+          Back to Matches
+        </button>
+      </div>
     </div>
   </div>
 

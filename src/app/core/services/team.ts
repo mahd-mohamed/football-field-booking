@@ -181,6 +181,21 @@ export class Team {
     }
   }
 
+  // Get all team members from localStorage (for debugging)
+  getAllTeamMembers(): Observable<ITeamMember[]> {
+    try {
+      const membersString = localStorage.getItem('teamMembers');
+      if (membersString) {
+        const members: ITeamMember[] = JSON.parse(membersString);
+        return of(members);
+      }
+      return of([]);
+    } catch (error) {
+      console.error('Error loading all team members:', error);
+      return of([]);
+    }
+  }
+
   getUserTeams(userId: number): Observable<ITeam[]> {
     try {
       const membersString = localStorage.getItem('teamMembers');

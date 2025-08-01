@@ -1,114 +1,53 @@
-import { Component, OnInit ,OnDestroy} from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common'; 
-import { ActivatedRoute } from '@angular/router';
-import { Observable, combineLatest, map, switchMap, of, catchError,tap, takeUntil,Subject } from 'rxjs';
-
-import { Match, IMatchParticipant, IBookingMatch } from '../../../core/services/match';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Match, IBookingMatch, IMatchParticipant } from '../../../core/services/match';
 import { Team, ITeamMember } from '../../../core/services/team';
+import { Auth } from '../../../core/services/auth';
+import { Notification } from '../../../core/services/notification';
 
 @Component({
   selector: 'app-match-participants',
-  imports: [CommonModule], 
   templateUrl: './match-participants.html',
-  styleUrls: ['./match-participants.css'] 
+  styleUrls: ['./match-participants.css'],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule
+  ]
 })
-export class MatchParticipants implements OnInit,OnDestroy { 
-  matchId!: string;
-  teamId!: string;
-  match$!: Observable<IBookingMatch>;
-  players$!: Observable<ITeamMember[]>;
-  matchParticipants$!: Observable<IMatchParticipant[]>;
-  // Corrected: Allow 'match' to be null in the combined data type
-  combinedData$!: Observable<{ match: IBookingMatch | null, players: ITeamMember[], participants: IMatchParticipant[], teamId: string }>;
-
+export class MatchParticipants implements OnInit, OnDestroy {
+  match: IBookingMatch | null = null;
+  teamMembers: ITeamMember[] = [];
+  acceptedParticipants: IMatchParticipant[] = [];
+  pendingParticipants: IMatchParticipant[] = [];
+  participationRequests: IMatchParticipant[] = [];
+  loading: boolean = true;
+  isOrganizer: boolean = false;
+  hasRequestedParticipation: boolean = false;
+  successMessage: string | null = null;
   errorMessage: string | null = null;
-  private destroy$ = new Subject<void>(); // For managing subscriptions
+  private destroy$ = new Subject<void>();
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private matchService: Match,
-    private teamService: Team
-  ) { }
+    private teamService: Team,
+    private authService: Auth,
+    private notificationService: Notification
+  ) {}
 
   ngOnInit(): void {
-    console.log('MatchParticipantsComponent: ngOnInit started.');
-
-    this.combinedData$ = this.route.paramMap.pipe(
-      map(params => {
-        this.matchId = params.get('id') || '';
-        this.teamId = params.get('teamId') || '';
-        console.log(`MatchParticipantsComponent: Route Params - matchId: ${this.matchId}, teamId: ${this.teamId}`);
-
-        if (!this.matchId || !this.teamId) {
-          this.errorMessage = 'Match ID or Team ID is missing in the route.';
-          console.error('MatchParticipantsComponent:', this.errorMessage);
-          throw new Error(this.errorMessage);
-        }
-        return { matchId: this.matchId, teamId: this.teamId };
-      }),
-      switchMap(({ matchId, teamId }) => {
-        console.log(`MatchParticipantsComponent: Initiating service calls for matchId: ${matchId}, teamId: ${teamId}`);
-        return combineLatest([
-          this.matchService.getBookingMatchById(matchId),
-          this.teamService.getTeamMembers(teamId),
-          this.matchService.getMatchParticipants(matchId)
-        ]).pipe(
-          // Explicitly type the tuple elements here to help TypeScript
-          tap(([match, players, participants]: [IBookingMatch | null, ITeamMember[], IMatchParticipant[]]) => {
-            console.log('MatchParticipantsComponent: Service Data Received - Match:', match);
-            console.log('MatchParticipantsComponent: Service Data Received - Players:', players);
-            console.log('MatchParticipantsComponent: Service Data Received - Participants:', participants);
-          }),
-          // Explicitly type the tuple elements here as well
-          map(([match, players, participants]: [IBookingMatch | null, ITeamMember[], IMatchParticipant[]]) => ({ match, players, participants, teamId })),
-          catchError((err: any) => { // Explicitly type err
-            this.errorMessage = `Error loading data from services: ${err.message}`;
-            console.error('MatchParticipantsComponent: Service data fetch error caught:', err);
-            // Corrected: Ensure the returned object strictly matches the Observable type
-            return of({ match: null, players: [] as ITeamMember[], participants: [] as IMatchParticipant[], teamId: teamId });
-          })
-        );
-      }),
-      tap(data => {
-        console.log('MatchParticipantsComponent: Final combinedData$ stream emitted:', data);
-        if (!data.match) {
-          console.warn('MatchParticipantsComponent: Final data has no match object. Check mock data or service logic.');
-        }
-        // Corrected: Add null checks for players and participants before accessing length
-        if (data.players && data.players.length === 0) {
-          console.warn('MatchParticipantsComponent: Final data has no players. Check mock data or service logic.');
-        }
-        if (data.participants && data.participants.length === 0) {
-          console.warn('MatchParticipantsComponent: Final data has no participants. Check mock data or service logic.');
-        }
-      }),
-      catchError((err: any) => { // Explicitly type err
-        this.errorMessage = `Error in overall combinedData$ stream: ${err.message}`;
-        console.error('MatchParticipantsComponent: Overall stream error caught:', err);
-        // Corrected: Ensure the returned object strictly matches the Observable type
-        return of({ match: null, players: [] as ITeamMember[], participants: [] as IMatchParticipant[], teamId: '' });
-      }),
-      takeUntil(this.destroy$) // Unsubscribe on component destroy
-    );
-
-    // Subscribe to the combinedData$ to trigger the observable chain
-    // and log the final state for debugging
-    this.combinedData$.subscribe({
-      next: (data: { match: IBookingMatch | null, players: ITeamMember[], participants: IMatchParticipant[], teamId: string }) => { // Explicitly type data
-        console.log('MatchParticipantsComponent: combinedData$ subscription received data:', data);
-        if (data.match) {
-          console.log('MatchParticipantsComponent: Match data is available for rendering.');
-        } else {
-          console.warn('MatchParticipantsComponent: Match data is NULL in subscription. Template will show "No match data available."');
-        }
-      },
-      error: (err: any) => { // Explicitly type err
-        console.error('MatchParticipantsComponent: combinedData$ subscription error:', err);
-      },
-      complete: () => {
-        console.log('MatchParticipantsComponent: combinedData$ subscription completed.');
-      }
-    });
+    this.loadMatchData();
   }
 
   ngOnDestroy(): void {
@@ -116,50 +55,260 @@ export class MatchParticipants implements OnInit,OnDestroy {
     this.destroy$.complete();
   }
 
-  isPlayerInvited(userId: string, participants: IMatchParticipant[]): boolean {
-    return participants.some(p => p.userId.toString() === userId && (p.status === 'INVITED' || p.status === 'ACCEPTED'));
-  }
-
-  getPlayerInvitationStatus(userId: string, participants: IMatchParticipant[]): string {
-    const participant = participants.find(p => p.userId.toString() === userId);
-    return participant ? participant.status.charAt(0).toUpperCase() + participant.status.slice(1) : 'Not Invited';
-  }
-
-  invitePlayer(userId: string): void {
-    if (!this.matchId) {
-      this.errorMessage = 'Match ID is not available.';
+  loadMatchData(): void {
+    const matchId = this.route.snapshot.paramMap.get('id');
+    const teamId = this.route.snapshot.paramMap.get('teamId');
+    
+    if (!matchId) {
+      this.errorMessage = 'Match ID is required';
+      this.loading = false;
       return;
     }
 
-    this.matchService.addMatchParticipant(this.matchId, parseInt(userId)).subscribe({
-      next: (participant: IMatchParticipant) => { // Explicitly type participant
-        console.log('User invited successfully:', participant);
-        this.refreshParticipants();
+    // Load match details
+    this.matchService.getBookingMatchById(matchId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (match) => {
+        if (match) {
+          this.match = match;
+          this.checkUserRole();
+          this.loadParticipants();
+          this.loadTeamMembers();
+        } else {
+          this.errorMessage = 'Match not found';
+          this.loading = false;
+        }
       },
-      error: (err: any) => { // Explicitly type err
-        this.errorMessage = `Failed to invite user: ${err.message}`;
-        console.error(err);
+      error: (err) => {
+        console.error('Failed to load match', err);
+        this.errorMessage = 'Failed to load match details';
+        this.loading = false;
       }
     });
   }
 
-  private refreshParticipants(): void {
-    if (this.matchId) {
-      this.matchService.getMatchParticipants(this.matchId).pipe(
-        catchError((err: any) => { // Explicitly type err
-          this.errorMessage = `Error refreshing participants: ${err.message}`;
-          console.error(err);
-          return of([]);
-        }),
-        takeUntil(this.destroy$)
-      ).subscribe((newParticipants: IMatchParticipant[]) => { // Explicitly type newParticipants
-        // This is a simple way to update the observable, for more complex state management
-        // consider using a BehaviorSubject in the service.
-        this.combinedData$ = this.combinedData$.pipe(
-          map(data => ({ ...data, participants: newParticipants })),
-          takeUntil(this.destroy$)
-        );
-      });
+  checkUserRole(): void {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser || !this.match) return;
+
+    // Check if user is the organizer
+    this.isOrganizer = currentUser.id === this.match.organizerId;
+  }
+
+  loadParticipants(): void {
+    if (!this.match) return;
+
+    this.matchService.getMatchParticipants(this.match.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (participants) => {
+        this.acceptedParticipants = participants.filter(p => p.status === 'ACCEPTED');
+        this.pendingParticipants = participants.filter(p => p.status === 'INVITED');
+        this.participationRequests = participants.filter(p => p.status === 'INVITED');
+        
+        // Check if current user has requested participation
+        const currentUser = this.authService.getCurrentUser();
+        if (currentUser) {
+          this.hasRequestedParticipation = participants.some(p => p.userId === currentUser.id);
+        }
+        
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load participants', err);
+        this.errorMessage = 'Failed to load participants';
+        this.loading = false;
+      }
+    });
+  }
+
+  loadTeamMembers(): void {
+    if (!this.match) return;
+
+    this.teamService.getTeamMembers(this.match.teamId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (members) => {
+        this.teamMembers = members.filter(m => m.status === 'APPROVED');
+      },
+      error: (err) => {
+        console.error('Failed to load team members', err);
+      }
+    });
+  }
+
+  isParticipant(userId: number): boolean {
+    return this.acceptedParticipants.some(p => p.userId === userId);
+  }
+
+  getParticipantName(userId: number): string {
+    // Try to find in team members first
+    const teamMember = this.teamMembers.find(m => m.userId === userId);
+    if (teamMember) {
+      return teamMember.username;
     }
+    
+    // Fallback to mock data or current user
+    const currentUser = this.authService.getCurrentUser();
+    if (currentUser && currentUser.id === userId) {
+      return currentUser.username;
+    }
+    
+    return 'Unknown User';
+  }
+
+  getParticipantEmail(userId: number): string {
+    // Try to find in team members first
+    const teamMember = this.teamMembers.find(m => m.userId === userId);
+    if (teamMember) {
+      return teamMember.email;
+    }
+    
+    // Fallback to mock data or current user
+    const currentUser = this.authService.getCurrentUser();
+    if (currentUser && currentUser.id === userId) {
+      return currentUser.email;
+    }
+    
+    return 'unknown@email.com';
+  }
+
+  inviteTeamMember(member: ITeamMember): void {
+    if (!this.match) return;
+
+    this.matchService.addMatchParticipant(this.match.id, member.userId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (participant) => {
+        this.pendingParticipants.push(participant);
+        
+        // Create notification for the invited user
+        this.notificationService.createMatchInvitationNotification(
+          member.userId,
+          this.match!.id,
+          'Your Team', // In real app, get team name
+          'Match Organizer' // In real app, get organizer name
+        ).subscribe();
+
+        this.successMessage = `Invitation sent to ${member.username}`;
+        setTimeout(() => this.successMessage = null, 3000);
+      },
+      error: (err) => {
+        console.error('Failed to invite team member', err);
+        this.errorMessage = 'Failed to send invitation';
+      }
+    });
+  }
+
+  removeParticipant(userId: number): void {
+    if (!this.match) return;
+
+    // Remove from accepted participants
+    this.acceptedParticipants = this.acceptedParticipants.filter(p => p.userId !== userId);
+    
+    // Remove from pending participants
+    this.pendingParticipants = this.pendingParticipants.filter(p => p.userId !== userId);
+    
+    // Remove from participation requests
+    this.participationRequests = this.participationRequests.filter(p => p.userId !== userId);
+
+    this.successMessage = 'Participant removed from match';
+    setTimeout(() => this.successMessage = null, 3000);
+  }
+
+  approveParticipation(participantId: string): void {
+    if (!this.match) return;
+
+    this.matchService.respondToMatchInvite(participantId, 'ACCEPTED').pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        // Update local state
+        const participant = this.participationRequests.find(p => p.id === participantId);
+        if (participant) {
+          participant.status = 'ACCEPTED';
+          participant.respondedAt = new Date().toISOString();
+          this.acceptedParticipants.push(participant);
+          this.participationRequests = this.participationRequests.filter(p => p.id !== participantId);
+        }
+
+        // Create notification for the participant
+        this.notificationService.createMatchParticipationApprovedNotification(
+          participant!.userId,
+          this.match!.id
+        ).subscribe();
+
+        this.successMessage = 'Participation request approved';
+        setTimeout(() => this.successMessage = null, 3000);
+      },
+      error: (err) => {
+        console.error('Failed to approve participation', err);
+        this.errorMessage = 'Failed to approve participation';
+      }
+    });
+  }
+
+  rejectParticipation(participantId: string): void {
+    if (!this.match) return;
+
+    this.matchService.respondToMatchInvite(participantId, 'DECLINED').pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        // Update local state
+        const participant = this.participationRequests.find(p => p.id === participantId);
+        if (participant) {
+          participant.status = 'DECLINED';
+          participant.respondedAt = new Date().toISOString();
+          this.participationRequests = this.participationRequests.filter(p => p.id !== participantId);
+        }
+
+        // Create notification for the participant
+        this.notificationService.createMatchParticipationRejectedNotification(
+          participant!.userId,
+          this.match!.id
+        ).subscribe();
+
+        this.successMessage = 'Participation request rejected';
+        setTimeout(() => this.successMessage = null, 3000);
+      },
+      error: (err) => {
+        console.error('Failed to reject participation', err);
+        this.errorMessage = 'Failed to reject participation';
+      }
+    });
+  }
+
+  requestParticipation(): void {
+    if (!this.match) return;
+
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) return;
+
+    this.matchService.addMatchParticipant(this.match.id, currentUser.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (participant) => {
+        this.participationRequests.push(participant);
+        this.hasRequestedParticipation = true;
+
+        // Create notification for the organizer
+        this.notificationService.createMatchParticipationRequestNotification(
+          this.match!.organizerId,
+          this.match!.id,
+          currentUser.username
+        ).subscribe();
+
+        this.successMessage = 'Participation request sent to organizer';
+        setTimeout(() => this.successMessage = null, 3000);
+      },
+      error: (err) => {
+        console.error('Failed to request participation', err);
+        this.errorMessage = 'Failed to send participation request';
+      }
+    });
+  }
+
+  getTimeAgo(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    
+    return date.toLocaleDateString();
   }
 }

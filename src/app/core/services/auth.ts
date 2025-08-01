@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Team } from './team';
 
-export type UserRole = 'PLAYER' | 'ORGANIZER' | 'ADMIN';
+export type UserRole = 'USER' | 'ORGANIZER' | 'ADMIN';
 export interface User {
   id: number;
   username: string;
   email: string;
   password: string;
   role: UserRole;
+  status: 'ACTIVE' | 'INACTIVE';
 }
 
 @Injectable({
@@ -15,9 +16,9 @@ export interface User {
 })
 export class Auth {
   private users: User[] = [
-    { id: 1, username: 'admin', email: 'admin@admin.com', password: 'admin1', role: 'ADMIN' },
-    { id: 2, username: 'organizer', email: 'org@org.com', password: 'organizer', role: 'ORGANIZER' },
-    { id: 3, username: 'player', email: 'player@player.com', password: 'player', role: 'PLAYER' }
+    { id: 1, username: 'admin', email: 'admin@admin.com', password: 'admin1', role: 'ADMIN', status: 'ACTIVE' },
+    { id: 2, username: 'organizer', email: 'org@org.com', password: 'organizer', role: 'ORGANIZER', status: 'ACTIVE' },
+    { id: 3, username: 'player', email: 'player@player.com', password: 'player', role: 'USER', status: 'ACTIVE' }
   ];
   private currentUserKey = 'currentUser';
   private usersKey = 'users';
@@ -65,7 +66,8 @@ export class Auth {
       username: user.username,
       email: user.email,
       password: user.password,
-      role: 'PLAYER'
+      role: 'USER',
+      status: 'ACTIVE'
     };
     users.push(newUser);
     this.saveUsers(users);
@@ -106,13 +108,13 @@ export class Auth {
   // Get effective role based on user's base role and team ownership
   getEffectiveRole(): string {
     const currentUser = this.getCurrentUser();
-    if (!currentUser) return 'PLAYER';
+    if (!currentUser) return 'USER';
 
     if (currentUser.role === 'ADMIN') return 'ADMIN';
     if (currentUser.role === 'ORGANIZER') return 'ORGANIZER';
 
     // For players, check if they are organizers in any team
     // This is a simplified check - in a real app, you'd want to cache this
-    return 'PLAYER'; // Default to PLAYER, will be updated by components that need it
+    return 'USER'; // Default to USER, will be updated by components that need it
   }
 }

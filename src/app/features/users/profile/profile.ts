@@ -12,7 +12,6 @@ import { Auth, User } from '../../../core/services/auth';
 import { Team } from '../../../core/services/team';
 
 interface UserProfile extends User {
-  status?: 'ACTIVE' | 'INACTIVE'; // Extended to include status
   createdAt?: string;
 }
 
@@ -66,10 +65,10 @@ export class Profile implements OnInit {
     const user = this.authService.getCurrentUser();
     
     if (user) {
-      // Convert User to UserProfile and add default status
+      // Convert User to UserProfile
       this.currentUser = {
         ...user,
-        status: 'ACTIVE' // Default to ACTIVE since User type doesn't have status
+        status: user.status || 'ACTIVE' // Use existing status or default to ACTIVE
       };
       this.editForm.username = this.currentUser.username;
       
@@ -119,7 +118,7 @@ export class Profile implements OnInit {
     } else if (this.currentUser?.role === 'ORGANIZER' || isOrganizerInAnyTeam) {
       this.effectiveRole = 'ORGANIZER';
     } else {
-      this.effectiveRole = 'PLAYER';
+      this.effectiveRole = 'USER';
     }
   }
 
@@ -215,17 +214,19 @@ export class Profile implements OnInit {
     switch (role) {
       case 'ADMIN': return 'Administrator';
       case 'ORGANIZER': return 'Organizer';
-      case 'PLAYER': return 'Player';
+      case 'USER': return 'User';
       default: return role;
     }
   }
 
-  getStatusDisplayName(status: string | undefined): string {
-    if (!status) return 'Active'; // Default to Active if status is undefined
+  getStatusDisplayName(status: string): string {
     switch (status) {
-      case 'ACTIVE': return 'Active';
-      case 'INACTIVE': return 'Inactive';
-      default: return status;
+      case 'ACTIVE':
+        return 'Active';
+      case 'INACTIVE':
+        return 'Inactive';
+      default:
+        return 'Unknown';
     }
   }
 
@@ -233,14 +234,20 @@ export class Profile implements OnInit {
     switch (role) {
       case 'ADMIN': return 'danger';
       case 'ORGANIZER': return 'primary';
-      case 'PLAYER': return 'success';
+      case 'USER': return 'success';
       default: return 'secondary';
     }
   }
 
-  getStatusColor(status: string | undefined): string {
-    if (!status) return 'success'; // Default to success if status is undefined
-    return status === 'ACTIVE' ? 'success' : 'secondary';
+  getStatusColor(status: string): string {
+    switch (status) {
+      case 'ACTIVE':
+        return 'success';
+      case 'INACTIVE':
+        return 'danger';
+      default:
+        return 'secondary';
+    }
   }
 
   formatDate(dateString: string): string {

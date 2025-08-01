@@ -175,6 +175,116 @@
   font-size: 0.875rem;
 }
 
+/* Booking Groups */
+.booking-groups {
+  margin-top: 24px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.booking-groups h4 {
+  color: #333;
+  margin-bottom: 16px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.booking-groups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.booking-group {
+  background-color: white;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.booking-group:hover {
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.booking-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.booking-number {
+  font-weight: 600;
+  color: #007bff;
+  font-size: 1rem;
+}
+
+.booking-duration {
+  background-color: #007bff;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.booking-group-time {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.booking-group-slots {
+  margin-top: 12px;
+}
+
+.booking-group-slots small {
+  color: #666;
+  font-size: 0.875rem;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.group-slots-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.group-slot-chip {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border: 1px solid #bbdefb;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+
+.total-summary {
+  margin-top: 20px;
+  padding: 16px;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  text-align: center;
+  color: #155724;
+}
+
+.total-summary strong {
+  font-size: 1.1rem;
+}
+
 /* Loading Section */
 .loading-section {
   display: flex;

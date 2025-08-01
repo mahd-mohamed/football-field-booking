@@ -22,7 +22,7 @@ interface User {
   id: number;
   username: string;
   email: string;
-  role: 'ADMIN' | 'PLAYER' | 'ORGANIZER';
+  role: 'ADMIN' | 'USER' | 'ORGANIZER';
   status: 'ACTIVE' | 'INACTIVE';
   // createdAt: string;
 }
@@ -85,12 +85,17 @@ export class UserList implements OnInit {
     const usersString = localStorage.getItem('users');
     if (usersString) {
       this.allUsers = JSON.parse(usersString);
+      // Ensure all users have status field
+      this.allUsers = this.allUsers.map(user => ({
+        ...user,
+        status: user.status || 'ACTIVE' // Default to ACTIVE if status is missing
+      }));
     } else {
       // Initialize with default users
       this.allUsers = [
         { id: 1, username: 'admin', email: 'admin@admin.com', role: 'ADMIN', status: 'ACTIVE' },
         { id: 2, username: 'organizer', email: 'org@org.com', role: 'ORGANIZER', status: 'ACTIVE'},
-        { id: 3, username: 'player', email: 'player@player.com', role: 'PLAYER', status: 'ACTIVE'}
+        { id: 3, username: 'player', email: 'player@player.com', role: 'USER', status: 'ACTIVE'}
       ];
       localStorage.setItem('users', JSON.stringify(this.allUsers));
     }
@@ -110,12 +115,13 @@ export class UserList implements OnInit {
   //   });
   // }
 
-  changeUserRole(userId: number, newRole: 'ADMIN' | 'PLAYER' | 'ORGANIZER'): void {
+  changeUserRole(userId: number, newRole: 'ADMIN' | 'USER' | 'ORGANIZER'): void {
     const user = this.allUsers.find(u => u.id === userId);
     if (user) {
       user.role = newRole;
+      // Update localStorage
       localStorage.setItem('users', JSON.stringify(this.allUsers));
-      // this.applyFilters();
+      this.filteredUsers = [...this.allUsers];
     }
   }
 
@@ -123,8 +129,9 @@ export class UserList implements OnInit {
     const user = this.allUsers.find(u => u.id === userId);
     if (user) {
       user.status = newStatus;
+      // Update localStorage
       localStorage.setItem('users', JSON.stringify(this.allUsers));
-      // this.applyFilters();
+      this.filteredUsers = [...this.allUsers];
     }
   }
 
@@ -134,7 +141,7 @@ export class UserList implements OnInit {
     switch (role) {
       case 'ADMIN': return 'warn';
       case 'ORGANIZER': return 'primary';
-      case 'PLAYER': return 'accent';
+      case 'USER': return 'accent';
       default: return 'primary';
     }
   }

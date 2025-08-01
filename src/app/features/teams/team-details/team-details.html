@@ -13,11 +13,18 @@
       <p><strong>Created At:</strong> {{ team.createdAt | date:'medium' }}</p>
 
       <div class="button-group">
-        <button *ngIf="isOrganizer" (click)="toggleEditMode()" class="edit-button">Edit Team</button>
+        <button *ngIf="isOrganizer" (click)="toggleEditMode()" class="edit-button">
+          <mat-icon>edit</mat-icon>
+          Edit Team
+        </button>
         <button class="navigate-button" (click)="navigateToMatchParticipants('sample-match-id')">
+          <mat-icon>sports_soccer</mat-icon>
           View Match Participants (Sample)
         </button>
-        <button (click)="goBackToList()" class="back-button">Back to List</button>
+        <button (click)="goBackToList()" class="back-button">
+          <mat-icon>arrow_back</mat-icon>
+          Back to List
+        </button>
       </div>
     </div>
 
@@ -42,14 +49,108 @@
           </div>
         </div>
         <div class="button-group">
-          <button type="submit" [disabled]="editTeamForm.invalid" class="save-button">Save Changes</button>
-          <button type="button" (click)="toggleEditMode()" class="cancel-button">Cancel</button>
+          <button type="submit" [disabled]="editTeamForm.invalid" class="save-button">
+            <mat-icon>save</mat-icon>
+            Save Changes
+          </button>
+          <button type="button" (click)="toggleEditMode()" class="cancel-button">
+            <mat-icon>cancel</mat-icon>
+            Cancel
+          </button>
         </div>
       </form>
     </div>
 
+    <!-- Team Management Section (for Organizers) -->
+    <div *ngIf="isOrganizer" class="team-management-section">
+      <h3>
+        <mat-icon>admin_panel_settings</mat-icon>
+        Team Management
+      </h3>
+      
+      <div class="management-cards">
+        <!-- Invite Players Card -->
+        <div class="management-card">
+          <div class="card-header">
+            <mat-icon class="card-icon">person_add</mat-icon>
+            <h4>Invite Players</h4>
+          </div>
+          <div class="card-content">
+            <p>Invite new players to join your team</p>
+            <button (click)="goToInvitePlayer(team.id)" class="management-button invite-button">
+              <mat-icon>group_add</mat-icon>
+              Invite New Member
+            </button>
+          </div>
+        </div>
+
+        <!-- Team Requests Card -->
+        <div class="management-card">
+          <div class="card-header">
+            <mat-icon class="card-icon">pending_actions</mat-icon>
+            <h4>Team Requests</h4>
+          </div>
+          <div class="card-content">
+            <p>Review and manage join requests</p>
+            <button (click)="goToTeamRequests()" class="management-button requests-button">
+              <mat-icon>list_alt</mat-icon>
+              View Requests
+            </button>
+          </div>
+        </div>
+
+        <!-- Team Members Card -->
+        <div class="management-card">
+          <div class="card-header">
+            <mat-icon class="card-icon">group</mat-icon>
+            <h4>Current Members</h4>
+          </div>
+          <div class="card-content">
+            <p>Manage existing team members</p>
+            <button (click)="goToTeamMembers()" class="management-button members-button">
+              <mat-icon>people</mat-icon>
+              Manage Members
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Request to Join Team Section (for non-members) -->
+    <div *ngIf="!isOrganizer && !isTeamMember && !hasRequestedJoin" class="join-request-section">
+      <h3>
+        <mat-icon>group_add</mat-icon>
+        Join This Team
+      </h3>
+      <div class="join-request-card">
+        <p>Would you like to join this team?</p>
+        <div class="join-request-actions">
+          <button (click)="requestToJoinTeam()" class="join-request-button">
+            <mat-icon>group_add</mat-icon>
+            Request to Join Team
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Join Request Status (for users who have requested) -->
+    <div *ngIf="!isOrganizer && hasRequestedJoin" class="join-request-status">
+      <h3>
+        <mat-icon>schedule</mat-icon>
+        Join Request Status
+      </h3>
+      <div class="join-request-status-card">
+        <mat-icon class="status-icon pending">schedule</mat-icon>
+        <p>Your request to join this team is pending approval.</p>
+        <p class="status-note">The team organizer will review your request and notify you of their decision.</p>
+      </div>
+    </div>
+
     <!-- Team Members Section -->
-    <h3>Team Members</h3>
+    <h3>
+      <mat-icon>group</mat-icon>
+      Team Members
+    </h3>
     <div class="team-members-list">
       <div *ngIf="teamMembers.length === 0" class="no-members-message">No members in this team yet.</div>
       <div *ngFor="let member of teamMembers" class="member-card">
@@ -59,11 +160,12 @@
           <p><strong>Role:</strong> {{ member.role }}</p>
           <p><strong>Status:</strong> {{ member.status }}</p>
         </div>
-        <button *ngIf="isOrganizer" (click)="removeTeamMember(member.id)" class="remove-button">Remove</button>
+        <button *ngIf="isOrganizer" (click)="removeTeamMember(member.id)" class="remove-button">
+          <mat-icon>remove_circle</mat-icon>
+          Remove
+        </button>
       </div>
     </div>
-
-    <button *ngIf="isOrganizer" (click)="goToInvitePlayer(team.id)" class="invite-button">Invite New Member</button>
 
   </div>
 

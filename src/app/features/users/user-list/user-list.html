@@ -51,11 +51,11 @@
               <span class="badge" [ngClass]="{
                 'bg-danger': user.role === 'ADMIN',
                 'bg-primary': user.role === 'ORGANIZER',
-                'bg-success': user.role === 'PLAYER'
+                'bg-success': user.role === 'USER'
               }">
                 <i class="fa fa-user-shield me-1" *ngIf="user.role === 'ADMIN'"></i>
                 <i class="fa fa-users me-1" *ngIf="user.role === 'ORGANIZER'"></i>
-                <i class="fa fa-user me-1" *ngIf="user.role === 'PLAYER'"></i>
+                <i class="fa fa-user me-1" *ngIf="user.role === 'USER'"></i>
                 {{ user.role }}
               </span>
             </td>
@@ -86,11 +86,11 @@
                   <i class="fa fa-user-shield me-2"></i>
                   Set as Admin
                 </button>
-                <button mat-menu-item (click)="changeUserRole(user.id, 'ORGANIZER')">
+                <!-- <button mat-menu-item (click)="changeUserRole(user.id, 'ORGANIZER')">
                   <i class="fa fa-users me-2"></i>
                   Set as Organizer
-                </button>
-                <button mat-menu-item (click)="changeUserRole(user.id, 'PLAYER')">
+                </button> -->
+                <button mat-menu-item (click)="changeUserRole(user.id, 'USER')">
                   <i class="fa fa-user me-2"></i>
                   Set as Player
                 </button>

@@ -59,14 +59,15 @@
         </mat-card-content>
 
         <mat-card-actions align="end">
-          <button mat-button color="primary" (click)="goToMatchParticipants(match.id, match.teamId)">
-            <mat-icon>group</mat-icon>
-            View Participants
-          </button>
           <button mat-button (click)="goToMatchDetails(match.id)">
             <mat-icon>visibility</mat-icon>
             View Details
           </button>
+          <button mat-button color="primary" (click)="goToMatchParticipants(match.id, match.teamId)">
+            <mat-icon>group</mat-icon>
+            View Participants
+          </button>
+
           <button mat-button color="warn" (click)="deleteMatch(match.id)">
             <mat-icon>delete</mat-icon>
             Delete

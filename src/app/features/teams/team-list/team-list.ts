@@ -4,6 +4,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { Team } from '../../../core/services/team';
 import { ITeam } from '../../../core/services/team';
+import { Auth } from '../../../core/services/auth';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -26,7 +27,7 @@ export class TeamList implements OnInit, OnDestroy {
   errorMessage: string | null = null;
   private destroy$ = new Subject<void>();
 
-  constructor(private teamService: Team, private router: Router) {}
+  constructor(private teamService: Team, private router: Router, private authService: Auth) {}
 
   ngOnInit(): void {
     this.loadTeams();
@@ -35,6 +36,11 @@ export class TeamList implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  isTeamOrganizer(team: ITeam): boolean {
+    const currentUser = this.authService.getCurrentUser();
+    return currentUser ? currentUser.id === team.createdBy : false;
   }
 
   loadTeams(): void {

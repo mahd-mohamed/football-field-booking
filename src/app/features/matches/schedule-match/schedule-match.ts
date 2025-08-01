@@ -42,10 +42,12 @@ export class ScheduleMatch implements OnInit, OnDestroy {
   scheduleForm: FormGroup;
   userTeams: ITeam[] = [];
   availablePlaces: PlaceModel[] = [];
+  timeOptions: string[] = [];
   successMessage: string | null = null;
   errorMessage: string | null = null;
   currentUser: any;
   isLoading = false;
+  today = new Date();
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -66,6 +68,18 @@ export class ScheduleMatch implements OnInit, OnDestroy {
       maxParticipants: [22, [Validators.required, Validators.min(1)]],
       description: ['', [Validators.maxLength(500)]]
     });
+    
+    this.generateTimeOptions();
+  }
+
+  private generateTimeOptions(): void {
+    this.timeOptions = [];
+    for (let hour = 8; hour <= 22; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        this.timeOptions.push(timeString);
+      }
+    }
   }
 
   ngOnInit(): void {
@@ -77,6 +91,22 @@ export class ScheduleMatch implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  formatDateForDisplay(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  onDateChange(): void {
+    const selectedDate = this.scheduleForm.get('matchDate')?.value;
+    if (selectedDate) {
+      console.log('Selected date:', selectedDate);
+      console.log('Date object:', new Date(selectedDate));
+      console.log('Formatted date:', this.formatDateForDisplay(new Date(selectedDate)));
+    }
   }
 
   loadPlaces(): void {
@@ -112,9 +142,12 @@ export class ScheduleMatch implements OnInit, OnDestroy {
     this.isLoading = true;
     const formValue = this.scheduleForm.value;
 
-    // Convert date to ISO string
+    // Convert date to local date string to avoid timezone issues
     const matchDate = new Date(formValue.matchDate);
-    const dateString = matchDate.toISOString().split('T')[0];
+    const year = matchDate.getFullYear();
+    const month = String(matchDate.getMonth() + 1).padStart(2, '0');
+    const day = String(matchDate.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
 
     const bookingData: Omit<IBookingMatch, 'id' | 'createdAt'> = {
       placeId: formValue.placeId,
@@ -138,7 +171,12 @@ export class ScheduleMatch implements OnInit, OnDestroy {
           maxParticipants: 22
         });
         this.isLoading = false;
-        setTimeout(() => this.successMessage = null, 3000);
+        
+        // Navigate to matches page after successful creation
+        setTimeout(() => {
+          this.successMessage = null;
+          this.router.navigate(['/dashboard/matches']);
+        }, 2000);
       },
       error: (err) => {
         console.error('Failed to schedule match', err);
@@ -158,6 +196,16 @@ export class ScheduleMatch implements OnInit, OnDestroy {
     } else {
       this.scheduleForm.get('endTime')?.setErrors(null);
     }
+  }
+
+  getEndTimeOptions(): string[] {
+    const startTime = this.scheduleForm.get('startTime')?.value;
+    if (!startTime) {
+      return this.timeOptions;
+    }
+    
+    // Filter out times that are before or equal to start time
+    return this.timeOptions.filter(time => time > startTime);
   }
 
   validateParticipants(): void {

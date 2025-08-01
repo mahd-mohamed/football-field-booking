@@ -17,6 +17,13 @@ import { Team } from '../../../core/services/team';
 import { Place, PlaceModel } from '../../../core/services/place';
 import { Auth } from '../../../core/services/auth';
 
+interface IBookingGroup {
+  start_time: string;
+  end_time: string;
+  slots: ITimeSlot[];
+  duration: number; // in hours
+}
+
 @Component({
   selector: 'app-booking-form',
   standalone: true,
@@ -45,6 +52,7 @@ export class BookingFormComponent implements OnInit {
   selectedDate: Date = new Date();
   availableTimeSlots: ITimeSlot[] = [];
   selectedTimeSlots: ITimeSlot[] = [];
+  bookingGroups: IBookingGroup[] = [];
   currentUser: any;
   
   successMessage: string | null = null;
@@ -141,6 +149,59 @@ export class BookingFormComponent implements OnInit {
     
     this.bookingForm.patchValue({ time_slots: selectedSlots });
     this.selectedTimeSlots = selectedSlots;
+    this.groupConsecutiveSlots();
+  }
+
+  private groupConsecutiveSlots(): void {
+    if (this.selectedTimeSlots.length === 0) {
+      this.bookingGroups = [];
+      return;
+    }
+
+    // Sort slots by start time
+    const sortedSlots = [...this.selectedTimeSlots].sort((a, b) => 
+      new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+    );
+
+    const groups: IBookingGroup[] = [];
+    let currentGroup: ITimeSlot[] = [sortedSlots[0]];
+
+    for (let i = 1; i < sortedSlots.length; i++) {
+      const currentSlot = sortedSlots[i];
+      const previousSlot = sortedSlots[i - 1];
+      
+      const currentStart = new Date(currentSlot.start_time);
+      const previousEnd = new Date(previousSlot.end_time);
+      
+      // Check if slots are consecutive (end time of previous = start time of current)
+      if (currentStart.getTime() === previousEnd.getTime()) {
+        currentGroup.push(currentSlot);
+      } else {
+        // End current group and start new one
+        groups.push(this.createBookingGroup(currentGroup));
+        currentGroup = [currentSlot];
+      }
+    }
+    
+    // Add the last group
+    if (currentGroup.length > 0) {
+      groups.push(this.createBookingGroup(currentGroup));
+    }
+
+    this.bookingGroups = groups;
+  }
+
+  private createBookingGroup(slots: ITimeSlot[]): IBookingGroup {
+    const startTime = new Date(slots[0].start_time);
+    const endTime = new Date(slots[slots.length - 1].end_time);
+    const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60); // hours
+
+    return {
+      start_time: startTime.toISOString(),
+      end_time: endTime.toISOString(),
+      slots: slots,
+      duration: duration
+    };
   }
 
   isSlotSelected(slot: ITimeSlot): boolean {
@@ -155,23 +216,38 @@ export class BookingFormComponent implements OnInit {
     });
   }
 
+  formatDuration(hours: number): string {
+    if (hours === 1) {
+      return '1 hour';
+    } else if (hours === Math.floor(hours)) {
+      return `${hours} hours`;
+    } else {
+      const wholeHours = Math.floor(hours);
+      const minutes = Math.round((hours - wholeHours) * 60);
+      return `${wholeHours}h ${minutes}m`;
+    }
+  }
+
+  getTotalDuration(): number {
+    return this.bookingGroups.reduce((sum, group) => sum + group.duration, 0);
+  }
+
   onSubmit(): void {
-    if (this.bookingForm.valid && this.currentUser) {
+    if (this.bookingForm.valid && this.currentUser && this.bookingGroups.length > 0) {
       this.isLoading = true;
       this.errorMessage = null;
       this.successMessage = null;
 
       const formValue = this.bookingForm.value;
-      const selectedSlots = formValue.time_slots;
 
-      // Create bookings for each selected time slot
-      const bookingPromises = selectedSlots.map((slot: ITimeSlot) => {
+      // Create one booking for each group of consecutive slots
+      const bookingPromises = this.bookingGroups.map((group) => {
         const bookingData = {
           place_id: formValue.place_id,
           user_id: this.currentUser.id,
           team_id: formValue.team_id,
-          start_time: slot.start_time,
-          end_time: slot.end_time,
+          start_time: group.start_time,
+          end_time: group.end_time,
           status: 'PENDING_PAYMENT' as const,
           place_name: this.selectedPlace?.name,
           team_name: this.userTeams.find(t => t.id === formValue.team_id)?.name,
@@ -183,9 +259,11 @@ export class BookingFormComponent implements OnInit {
 
       Promise.all(bookingPromises)
         .then(() => {
-          this.successMessage = `Successfully booked ${selectedSlots.length} time slot(s)!`;
+          const totalDuration = this.bookingGroups.reduce((sum, group) => sum + group.duration, 0);
+          this.successMessage = `Successfully created ${this.bookingGroups.length} booking(s) for a total of ${this.formatDuration(totalDuration)}!`;
           this.bookingForm.reset();
           this.selectedTimeSlots = [];
+          this.bookingGroups = [];
           this.availableTimeSlots = [];
           
           setTimeout(() => {

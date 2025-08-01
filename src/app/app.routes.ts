@@ -58,6 +58,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'teams/requests',
+        loadComponent: () =>
+          import('./features/teams/team-requests/team-requests').then(
+            (m) => m.TeamRequests
+          ),
+      },
+      {
         path: 'teams/:id',
         loadComponent: () =>
           import('./features/teams/team-details/team-details').then(
@@ -69,13 +76,6 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/teams/invite-player/invite-player').then(
             (m) => m.InvitePlayer
-          ),
-      },
-      {
-        path: 'teams/requests',
-        loadComponent: () =>
-          import('./features/teams/team-requests/team-requests').then(
-            (m) => m.TeamRequests
           ),
       },
       {

@@ -44,9 +44,19 @@
     Profile
   </a>
 
-  <a *ngIf="effectiveRole === 'PLAYER' && role !== 'ADMIN'" mat-list-item routerLink="/dashboard/teams/create" routerLinkActive="active-link">
-    <mat-icon class="me-2">add_circle</mat-icon>
-    Create Team
+  <!-- Notifications with badge -->
+  <a *ngIf="role !== 'ADMIN'" mat-list-item routerLink="/dashboard/notifications" routerLinkActive="active-link" class="notification-link">
+    <mat-icon class="me-2">notifications</mat-icon>
+    Notifications
+    <span *ngIf="unreadNotificationCount > 0" class="notification-badge">
+      {{ unreadNotificationCount > 99 ? '99+' : unreadNotificationCount }}
+    </span>
+  </a>
+
+  <!-- Logout button -->
+  <a mat-list-item (click)="logout()" class="logout-button">
+    <mat-icon class="me-2">logout</mat-icon>
+    Logout
   </a>
 </mat-nav-list>
 <ng-template #loginMsg>

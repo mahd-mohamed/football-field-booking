@@ -1,1 +1,102 @@
-<p>notification-list works!</p>
+<div class="notification-container">
+  <div class="notification-header">
+    <h2 class="notification-title">
+      <mat-icon class="notification-icon">notifications</mat-icon>
+      Notifications
+    </h2>
+    <div class="notification-actions">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="markAllAsRead()"
+        [disabled]="unreadCount === 0"
+        class="mark-all-read-btn">
+        <mat-icon>done_all</mat-icon>
+        Mark All as Read
+      </button>
+    </div>
+  </div>
+
+  <div class="notification-stats">
+    <div class="stat-item">
+      <span class="stat-label">Total:</span>
+      <span class="stat-value">{{ notifications.length }}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Unread:</span>
+      <span class="stat-value unread-count">{{ unreadCount }}</span>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading notifications...</p>
+  </div>
+
+  <div *ngIf="!loading && notifications.length === 0" class="no-notifications">
+    <mat-icon class="empty-icon">notifications_off</mat-icon>
+    <h3>No notifications yet</h3>
+    <p>You'll see notifications here when you receive invitations, requests, or updates.</p>
+  </div>
+
+  <div *ngIf="!loading && notifications.length > 0" class="notifications-list">
+    <mat-card 
+      *ngFor="let notification of notifications" 
+      class="notification-card"
+      [class.unread]="notification.status === 'UNREAD'"
+      (click)="markAsRead(notification.id)">
+      
+      <mat-card-header class="notification-header-content">
+        <div class="notification-icon-container">
+          <mat-icon 
+            [class]="getNotificationIconClass(notification.type)"
+            class="notification-type-icon">
+            {{ getNotificationIcon(notification.type) }}
+          </mat-icon>
+        </div>
+        
+        <div class="notification-content">
+          <mat-card-title class="notification-title-text">
+            {{ notification.title }}
+            <span *ngIf="notification.status === 'UNREAD'" class="unread-indicator"></span>
+          </mat-card-title>
+          <mat-card-subtitle class="notification-message">
+            {{ notification.message }}
+          </mat-card-subtitle>
+          <div class="notification-meta">
+            <span class="notification-time">{{ getTimeAgo(notification.createdAt) }}</span>
+            <span class="notification-type-badge">{{ getNotificationTypeLabel(notification.type) }}</span>
+          </div>
+        </div>
+      </mat-card-header>
+
+      <mat-card-actions class="notification-actions-content">
+        <button 
+          mat-button 
+          color="primary" 
+          (click)="handleNotificationAction(notification); $event.stopPropagation()"
+          *ngIf="hasAction(notification)">
+          {{ getActionLabel(notification) }}
+        </button>
+        <button 
+          mat-icon-button 
+          color="warn" 
+          (click)="deleteNotification(notification.id); $event.stopPropagation()"
+          class="delete-btn">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div *ngIf="successMessage" class="success-message" role="alert">
+    <mat-icon>check_circle</mat-icon>
+    {{ successMessage }}
+  </div>
+  
+  <div *ngIf="errorMessage" class="error-message" role="alert">
+    <mat-icon>error</mat-icon>
+    {{ errorMessage }}
+  </div>
+</div>
