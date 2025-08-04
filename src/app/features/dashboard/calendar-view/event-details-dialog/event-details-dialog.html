@@ -71,26 +71,26 @@
         </mat-card>
       </div>
 
-      <!-- Match Details (Upcoming Matches) -->
-      <div *ngSwitchCase="'match'" class="event-details">
-        <mat-card class="detail-card">
-          <mat-card-content>
-            
-            <div class="detail-row">
-              <div class="detail-label">
-                <i class="material-icons">group</i>
-                Team:
-              </div>
-              <div class="detail-value">{{ data.data.teamName || 'Team' }}</div>
-            </div>
-            
-            <div class="detail-row">
-              <div class="detail-label">
-                <i class="material-icons">schedule</i>
-                Date & Time:
-              </div>
-              <div class="detail-value">{{ formatDate(data.data.matchDate) }}</div>
-            </div>
+             <!-- Match Details (Upcoming Matches) -->
+       <div *ngSwitchCase="'match'" class="event-details">
+         <mat-card class="detail-card">
+           <mat-card-content>
+             
+             <div class="detail-row">
+               <div class="detail-label">
+                 <i class="material-icons">group</i>
+                 Team:
+               </div>
+               <div class="detail-value">{{ data.data.teamName || 'Team' }}</div>
+             </div>
+             
+             <div class="detail-row">
+               <div class="detail-label">
+                 <i class="material-icons">schedule</i>
+                 Date & Time:
+               </div>
+               <div class="detail-value">{{ formatDate(data.data.matchDate) }}</div>
+             </div>
             
             <div class="detail-row">
               <div class="detail-label">

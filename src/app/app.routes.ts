@@ -160,7 +160,6 @@ export const routes: Routes = [
             (m) => m.AdminDashboardComponent
           ),
       },
-<<<<<<< HEAD
       {
         path: 'calendar',
         loadComponent: () =>
@@ -168,8 +167,6 @@ export const routes: Routes = [
             (m) => m.CalendarViewComponent
           ),
       },
-=======
->>>>>>> f1c20735added4de22c75e0fa4a4801f8a6e3cfc
     ],
   },
   {
