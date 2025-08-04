@@ -1,0 +1,75 @@
+<div class="calendar-container">
+  <!-- Header Section -->
+  <div class="calendar-header mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-12">
+        <h2 class="calendar-title">
+          <i class="fas fa-calendar-alt me-2"></i>
+          Comprehensive Calendar
+        </h2>
+        <p class="text-muted">View booked pitches and upcoming matches</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend Section -->
+  <div class="calendar-legend mb-3">
+    <div class="row">
+      <div class="col-12">
+        <div class="legend-container">
+          <div class="legend-item">
+            <div class="legend-color booking-color"></div>
+            <span class="legend-text">Booked Pitches</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color match-color"></div>
+            <span class="legend-text">Upcoming Matches</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar Card -->
+  <mat-card class="calendar-card">
+    <mat-card-content>
+      <div class="calendar-wrapper">
+        <full-calendar [options]="calendarOptions"></full-calendar>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Quick Stats -->
+  <div class="quick-stats mt-4">
+    <div class="row">
+      <div class="col-md-4">
+        <mat-card class="stat-card booking-stat">
+          <mat-card-content>
+            <div class="stat-content">
+              <i class="fas fa-calendar-check stat-icon"></i>
+              <div class="stat-info">
+                <h3 class="stat-number" id="booking-count">0</h3>
+                <p class="stat-label">Booked Pitches</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div class="col-md-4">
+        <mat-card class="stat-card match-stat">
+          <mat-card-content>
+            <div class="stat-content">
+              <i class="fas fa-futbol stat-icon"></i>
+              <div class="stat-info">
+                <h3 class="stat-number" id="match-count">0</h3>
+                <p class="stat-label">Upcoming Matches</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+    </div>
+  </div>
+</div> 

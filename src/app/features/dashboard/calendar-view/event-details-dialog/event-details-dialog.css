@@ -1,0 +1,284 @@
+.event-details-dialog {
+  max-width: 600px;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+}
+
+/* Header */
+.dialog-header {
+  padding: 20px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.event-icon {
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.event-icon i {
+  font-size: 24px;
+  color: white;
+}
+
+.event-title h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.close-btn {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Content */
+.dialog-content {
+  padding: 20px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.event-details {
+  width: 100%;
+}
+
+.detail-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+/* Detail Rows */
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.detail-label i {
+  color: #3498db;
+  font-size: 18px;
+}
+
+.detail-value {
+  flex: 1;
+  color: #34495e;
+  font-weight: 500;
+}
+
+/* Match Teams */
+.match-teams {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.team-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #2c3e50;
+  text-align: center;
+}
+
+.team-score {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #e74c3c;
+  background: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.vs {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #7f8c8d;
+  margin: 0 20px;
+}
+
+/* Actions */
+.dialog-actions {
+  padding: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+.dialog-actions button {
+  border-radius: 6px;
+  font-weight: 600;
+  padding: 8px 16px;
+  transition: all 0.3s ease;
+}
+
+.dialog-actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .event-details-dialog {
+    max-width: 95vw;
+    margin: 10px;
+  }
+  
+  .dialog-header {
+    padding: 15px;
+  }
+  
+  .event-title h2 {
+    font-size: 1.2rem;
+  }
+  
+  .event-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .event-icon i {
+    font-size: 20px;
+  }
+  
+  .dialog-content {
+    padding: 15px;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .detail-label {
+    min-width: auto;
+  }
+  
+  .match-teams {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .vs {
+    margin: 0;
+  }
+  
+  .dialog-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .dialog-actions button {
+    width: 100%;
+  }
+}
+
+/* RTL Support */
+[dir="rtl"] .detail-row {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .match-teams {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .dialog-actions {
+  justify-content: flex-start;
+}
+
+/* Animation */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.event-details-dialog {
+  animation: slideInUp 0.4s ease-out;
+}
+
+/* Custom scrollbar */
+.dialog-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dialog-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.dialog-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.dialog-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+} 

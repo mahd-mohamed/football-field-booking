@@ -1,0 +1,34 @@
+<mat-toolbar color="primary"
+  [ngClass]="{'navbar-hero-bg': heroActive && !isScrolled, 'navbar-light-bg': !heroActive || isScrolled}"
+  style="position:fixed;top:0;width:100%;z-index:1000;">
+  <div class="container-fluid d-flex align-items-center justify-content-between">
+    <a class="navbar-brand d-flex align-items-center" href="#">
+      <img src="/logo.png" alt="TeamPlayer" width="40" class="me-2" />
+      <span class="fw-bold">TeamPlayer</span>
+    </a>
+    <span class="d-lg-none">
+      <button mat-icon-button [matMenuTriggerFor]="menu">
+        <mat-icon>menu</mat-icon>
+      </button>
+    </span>
+    <nav class="d-none d-lg-flex mx-auto">
+      <a mat-button href="#home">Home</a>
+      <a mat-button href="#features">Features</a>
+      <a mat-button href="#about">About</a>
+      <a mat-button href="#contact">Contact</a>
+    </nav>
+    <div class="d-flex gap-2 d-none d-lg-flex">
+      <a mat-stroked-button color="accent" routerLink="/login">Login</a>
+      <a mat-flat-button color="accent" routerLink="/register">Register</a>
+    </div>
+  </div>
+</mat-toolbar>
+
+<mat-menu #menu="matMenu">
+  <button mat-menu-item (click)="scrollToSection('home'); menu.closed.emit()">Home</button>
+  <button mat-menu-item (click)="scrollToSection('features'); menu.closed.emit()">Features</button>
+  <button mat-menu-item (click)="scrollToSection('about'); menu.closed.emit()">About</button>
+  <button mat-menu-item (click)="scrollToSection('contact'); menu.closed.emit()">Contact</button>
+  <button mat-menu-item routerLink="/login">Login</button>
+  <button mat-menu-item routerLink="/register">Register</button>
+</mat-menu>

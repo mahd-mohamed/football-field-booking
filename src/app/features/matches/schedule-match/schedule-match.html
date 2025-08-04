@@ -1,0 +1,219 @@
+<div class="schedule-match-container">
+  <div class="header">
+    <h1>Schedule a Match</h1>
+    <p>Create a new match and invite team members to participate</p>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Schedule Form -->
+  <div class="form-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Match Details</mat-card-title>
+        <mat-card-subtitle>
+          Fill in the details to schedule your match
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="scheduleForm" (ngSubmit)="onSubmit()">
+          <div class="form-row">
+            <div class="form-field">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Select Place</mat-label>
+                <mat-select formControlName="placeId" required>
+                  <mat-option *ngFor="let place of availablePlaces" [value]="place.id">
+                    {{ place.name }} - {{ place.location }} ({{ place.type }})
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="scheduleForm.get('placeId')?.hasError('required')">
+                  Please select a place
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-field">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Team</mat-label>
+                <mat-select formControlName="teamId" required>
+                  <mat-option *ngFor="let team of userTeams" [value]="team.id">
+                    {{ team.name }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="scheduleForm.get('teamId')?.hasError('required')">
+                  Please select a team
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Match Date</mat-label>
+                <input 
+                  matInput 
+                  [matDatepicker]="datePicker" 
+                  formControlName="matchDate"
+                  (dateChange)="onDateChange()"
+                  placeholder="Choose a date"
+                  required>
+                <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
+                <mat-datepicker #datePicker [startAt]="today"></mat-datepicker>
+                <mat-error *ngIf="scheduleForm.get('matchDate')?.hasError('required')">
+                  Match date is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-field">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Start Time</mat-label>
+                <mat-select formControlName="startTime" (selectionChange)="validateTimes()" required>
+                  <mat-option *ngFor="let time of timeOptions" [value]="time">
+                    {{ time }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="scheduleForm.get('startTime')?.hasError('required')">
+                  Start time is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-field">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>End Time</mat-label>
+                <mat-select formControlName="endTime" (selectionChange)="validateTimes()" required>
+                  <mat-option *ngFor="let time of getEndTimeOptions()" [value]="time">
+                    {{ time }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="scheduleForm.get('endTime')?.hasError('required')">
+                  End time is required
+                </mat-error>
+                <mat-error *ngIf="scheduleForm.get('endTime')?.hasError('invalidTime')">
+                  End time must be after start time
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Minimum Participants</mat-label>
+                <input 
+                  matInput 
+                  type="number" 
+                  formControlName="minParticipants"
+                  (input)="validateParticipants()"
+                  placeholder="Minimum number of players"
+                  required>
+                <mat-error *ngIf="scheduleForm.get('minParticipants')?.hasError('required')">
+                  Minimum participants is required
+                </mat-error>
+                <mat-error *ngIf="scheduleForm.get('minParticipants')?.hasError('min')">
+                  Minimum participants must be at least 1
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-field">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Maximum Participants</mat-label>
+                <input 
+                  matInput 
+                  type="number" 
+                  formControlName="maxParticipants"
+                  (input)="validateParticipants()"
+                  placeholder="Maximum number of players"
+                  required>
+                <mat-error *ngIf="scheduleForm.get('maxParticipants')?.hasError('required')">
+                  Maximum participants is required
+                </mat-error>
+                <mat-error *ngIf="scheduleForm.get('maxParticipants')?.hasError('min')">
+                  Maximum participants must be at least 1
+                </mat-error>
+                <mat-error *ngIf="scheduleForm.get('maxParticipants')?.hasError('invalidRange')">
+                  Maximum participants must be greater than minimum
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description (Optional)</mat-label>
+              <textarea 
+                matInput 
+                formControlName="description" 
+                placeholder="Add any additional details about the match"
+                rows="4">
+              </textarea>
+              <mat-error *ngIf="scheduleForm.get('description')?.hasError('maxlength')">
+                Description cannot exceed 500 characters
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-actions">
+            <button 
+              type="submit" 
+              mat-raised-button 
+              color="primary" 
+              [disabled]="scheduleForm.invalid || isLoading">
+              <mat-icon *ngIf="!isLoading">schedule</mat-icon>
+              <mat-icon *ngIf="isLoading">hourglass_empty</mat-icon>
+              {{ isLoading ? 'Scheduling...' : 'Schedule Match' }}
+            </button>
+            <button 
+              type="button" 
+              mat-button 
+              (click)="goToMatches()">
+              <mat-icon>list</mat-icon>
+              View Matches
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Available Teams -->
+  <div *ngIf="userTeams.length > 0" class="teams-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Your Teams</mat-card-title>
+        <mat-card-subtitle>
+          Select a team to schedule a match for
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="teams-list">
+          <div *ngFor="let team of userTeams" class="team-item">
+            <div class="team-info">
+              <h4>{{ team.name }}</h4>
+              <p *ngIf="team.description">{{ team.description }}</p>
+              <small>Created: {{ team.createdAt | date:'mediumDate' }}</small>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Navigation -->
+  <div class="navigation">
+    <button mat-raised-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Dashboard
+    </button>
+  </div>
+</div>

@@ -1,0 +1,31 @@
+<div class="invite-player-container">
+  <h2>Invite New Member to Team</h2>
+
+  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+
+  <form [formGroup]="inviteForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="email">User Email:</label>
+      <input type="email" id="email" formControlName="email" placeholder="Enter user's email">
+      <div *ngIf="inviteForm.get('email')?.invalid && (inviteForm.get('email')?.dirty || inviteForm.get('email')?.touched)" class="error-message-inline">
+        <div *ngIf="inviteForm.get('email')?.errors?.['required']">Email is required.</div>
+        <div *ngIf="inviteForm.get('email')?.errors?.['email']">Please enter a valid email address.</div>
+      </div>
+    </div>
+
+    <!-- Role selection removed as per request -->
+    <!-- <div class="form-group">
+      <label for="role">Role:</label>
+      <select id="role" formControlName="role">
+        <option value="MEMBER">Member</option>
+        <option value="ORGANIZER">Organizer</option>
+      </select>
+    </div> -->
+
+    <div class="button-group">
+      <button type="submit" [disabled]="inviteForm.invalid" class="invite-button">Invite Member</button>
+      <button type="button" (click)="goBack()" class="back-button">Cancel</button>
+    </div>
+  </form>
+</div>

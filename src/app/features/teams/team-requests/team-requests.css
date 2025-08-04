@@ -1,0 +1,299 @@
+.team-requests-container {
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.requests-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.requests-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.requests-icon {
+  margin-right: 10px;
+  color: #1976d2;
+  font-size: 2rem;
+}
+
+.requests-subtitle {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.loading-container p {
+  margin-top: 15px;
+  font-size: 1.1rem;
+}
+
+.no-requests {
+  text-align: center;
+  padding: 80px 20px;
+  color: #666;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: #ccc;
+  margin-bottom: 20px;
+}
+
+.no-requests h3 {
+  margin-bottom: 10px;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.no-requests p {
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.requests-section {
+  margin-bottom: 40px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.section-icon {
+  margin-right: 10px;
+  color: #1976d2;
+  font-size: 1.5rem;
+}
+
+.requests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.request-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.request-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.invitation-card {
+  border-left: 4px solid #2196f3;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
+}
+
+.join-request-card {
+  border-left: 4px solid #ff9800;
+  background: linear-gradient(135deg, #f8f9fa 0%, #fff3e0 100%);
+}
+
+.request-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.team-info,
+.user-info {
+  flex: 1;
+}
+
+.team-name,
+.user-name {
+  margin-bottom: 5px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.invited-by,
+.user-email {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.request-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.request-status.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.request-status.pending mat-icon {
+  font-size: 1rem;
+}
+
+.request-message {
+  color: #666;
+  font-size: 1rem;
+  line-height: 1.4;
+  margin: 15px 0;
+}
+
+.request-meta {
+  margin-top: 10px;
+}
+
+.request-date {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.request-actions {
+  display: flex;
+  gap: 10px;
+  padding: 15px 20px;
+  justify-content: flex-end;
+}
+
+.approve-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #4caf50;
+  color: white;
+}
+
+.approve-btn:hover {
+  background: #45a049;
+}
+
+.reject-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #f44336;
+  color: white;
+}
+
+.reject-btn:hover {
+  background: #da190b;
+}
+
+/* Success and Error Messages */
+.success-message,
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.success-message {
+  background: #e8f5e8;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .team-requests-container {
+    padding: 15px;
+  }
+
+  .requests-title {
+    font-size: 1.6rem;
+  }
+
+  .requests-subtitle {
+    font-size: 1rem;
+  }
+
+  .requests-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .request-header-content {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .request-status {
+    align-self: flex-start;
+  }
+
+  .request-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .approve-btn,
+  .reject-btn {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .team-requests-container {
+    padding: 10px;
+  }
+
+  .requests-header {
+    margin-bottom: 20px;
+  }
+
+  .requests-title {
+    font-size: 1.4rem;
+  }
+
+  .section-title {
+    font-size: 1.2rem;
+  }
+
+  .request-card {
+    margin-bottom: 10px;
+  }
+
+  .request-actions {
+    padding: 10px 15px;
+  }
+}

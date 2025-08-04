@@ -1,0 +1,102 @@
+nav {
+  padding: 0.5rem 1rem;
+}
+
+.navbar-brand img {
+  height: 40px;
+  filter: none !important; 
+}
+
+.nav-link {
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #09c;
+}
+
+/* Remove all shadows for hero navbar */
+.navbar-hero-bg, .mat-toolbar.navbar-hero-bg,
+.navbar-light-bg, .mat-toolbar.navbar-light-bg,
+.mat-toolbar {
+  background: transparent;
+  color: #fff !important;
+  transition: background 0.3s, color 0.3s;
+  box-shadow: none !important;
+}
+
+.navbar-hero-bg .navbar-brand,
+.navbar-hero-bg .navbar-brand span,
+.navbar-hero-bg .mat-button,
+.navbar-hero-bg .mat-stroked-button,
+.navbar-hero-bg .mat-flat-button,
+.navbar-hero-bg .mat-icon {
+  color: #fff !important;
+  text-shadow: none !important;
+}
+
+.navbar-hero-bg .navbar-brand img {
+  filter: none !important;
+}
+
+/* Light background for navbar when scrolled */
+.navbar-light-bg, .mat-toolbar.navbar-light-bg {
+  background: #fff !important;
+  color: #222 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: background 0.3s, color 0.3s;
+}
+
+.navbar-light-bg .navbar-brand,
+.navbar-light-bg .navbar-brand span,
+.navbar-light-bg .mat-button,
+.navbar-light-bg .mat-stroked-button,
+.navbar-light-bg .mat-flat-button,
+.navbar-light-bg .mat-icon {
+  color: #222 !important;
+  text-shadow: none !important;
+}
+
+.navbar-light-bg .navbar-brand img {
+  filter: none !important;
+}
+
+/* Responsive styles */
+@media (max-width: 991.98px) {
+  .d-lg-flex {
+    display: none !important;
+  }
+  .d-lg-none {
+    display: inline-block !important;
+  }
+  .d-flex.gap-2 {
+    gap: 0.5rem !important;
+  }
+  .container-fluid {
+    flex-direction: row;
+    padding: 0 0.5rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .d-lg-flex {
+    display: flex !important;
+  }
+  .d-lg-none {
+    display: none !important;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .navbar-brand span {
+    font-size: 1rem;
+  }
+  .navbar-brand img {
+    height: 32px;
+    width: 32px;
+  }
+  .container-fluid {
+    padding: 0 0.25rem;
+  }
+}

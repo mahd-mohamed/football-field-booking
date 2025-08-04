@@ -1,0 +1,67 @@
+/* Modern footer design improvements */
+.footer-section {
+  background-color: #343a40;
+  border-top: 2px solid #1976d2;
+  box-shadow: 0 -2px 12px rgba(25, 118, 210, 0.04);
+  font-size: 1rem;
+}
+
+.footer-brand {
+  font-size: 1.25rem;
+  letter-spacing: 1px;
+  color: #fff;
+}
+
+.footer-link {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  transition: color 0.3s, background 0.3s;
+}
+
+.footer-link:hover {
+  color: #1976d2;
+  background: #e3f2fd;
+}
+
+.footer-social {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.footer-social-link {
+  color: #fff;
+  opacity: 0.8;
+  transition: color 0.3s, opacity 0.3s;
+  display: inline-flex;
+  align-items: center;
+}
+
+.footer-social-link:hover {
+  color: #1976d2;
+  opacity: 1;
+}
+
+.footer-copyright {
+  font-size: 0.95rem;
+  color: #b0b8c1;
+  margin-left: 0.5rem;
+}
+
+.footer-copyright a {
+  text-decoration: none;
+}
+
+@media (max-width: 767px) {
+  .footer-section {
+    font-size: 0.98rem;
+    padding: 1.5rem 0.5rem;
+  }
+  .footer-copyright {
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+}
+

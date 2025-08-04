@@ -1,0 +1,46 @@
+<section class="contact-section py-5" id="contact">
+  <div class="container">
+    <h2 class="text-center mb-5">Contact Us</h2>
+    <div class="row align-items-center">
+
+      <!-- Social Icons (on the left) -->
+      <div class="col-md-4 d-flex flex-wrap justify-content-center justify-content-md-start mb-4 mb-md-0">
+        <a href="https://facebook.com" target="_blank" class="social-icon me-3 mb-3">
+          <i class="fab fa-facebook fa-2x"></i>
+        </a>
+        <a href="https://instagram.com" target="_blank" class="social-icon me-3 mb-3">
+          <i class="fab fa-instagram fa-2x"></i>
+        </a>
+        <a href="https://linkedin.com" target="_blank" class="social-icon me-3 mb-3">
+          <i class="fab fa-linkedin fa-2x"></i>
+        </a>
+        <a href="https://github.com" target="_blank" class="social-icon mb-3">
+          <i class="fab fa-github fa-2x"></i>
+        </a>
+      </div>
+
+      <!-- Contact Form (on the right) -->
+      <div class="col-md-8">
+        <form (ngSubmit)="onSubmit()">
+          <mat-form-field class="w-100 mb-3" appearance="fill">
+            <mat-label>Your Name</mat-label>
+            <input matInput [(ngModel)]="name" name="name" required />
+          </mat-form-field>
+
+          <mat-form-field class="w-100 mb-3" appearance="fill">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" [(ngModel)]="email" name="email" required />
+          </mat-form-field>
+
+          <mat-form-field class="w-100 mb-3" appearance="fill">
+            <mat-label>Your Message</mat-label>
+            <textarea matInput rows="4" [(ngModel)]="message" name="message" required></textarea>
+          </mat-form-field>
+
+          <button mat-flat-button color="primary" type="submit">Send Message</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</section>

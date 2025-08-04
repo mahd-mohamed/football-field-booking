@@ -1,0 +1,38 @@
+.admin-dashboard {
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+.admin-dashboard h2 {
+  letter-spacing: 0.5px;
+  font-size: 2.3rem;
+  font-weight: 800;
+  margin-bottom: 2.5rem !important;
+}
+.card {
+  border-radius: 1.2rem;
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(25, 118, 210, 0.08);
+  transition: box-shadow 0.2s, transform 0.2s;
+  padding: 2rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.card:hover {
+  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.13);
+  transform: translateY(-4px) scale(1.03);
+}
+.card-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.btn {
+  border-radius: 1.2rem;
+  font-weight: 500;
+  font-size: 1.08rem;
+  padding: 0.6rem 1.2rem;
+}
+.bg-light {
+  background: #f8f9fa !important;
+} 
