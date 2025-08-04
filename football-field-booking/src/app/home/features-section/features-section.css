@@ -1,0 +1,25 @@
+.features-section {
+  background: #f5f7fa;
+}
+
+.section-title {
+  font-weight: 600;
+  font-size: 2rem;
+}
+
+.feature-card {
+  border-radius: 16px;
+  padding: 10px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: #fff;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+  width: 60px;
+  height: 60px;
+}

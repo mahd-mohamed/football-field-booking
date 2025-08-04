@@ -1,0 +1,228 @@
+<div class="match-participants-container">
+  <div class="participants-header">
+    <h2 class="participants-title">
+      <mat-icon class="participants-icon">group</mat-icon>
+      Match Participants
+    </h2>
+    <p class="participants-subtitle">{{ match?.description || 'Manage participants for this match' }}</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading participants...</p>
+  </div>
+
+  <!-- Match Info Card -->
+  <div *ngIf="!loading && match" class="match-info-card">
+      <div class="match-details">
+      <div class="match-date">
+        <mat-icon>event</mat-icon>
+        <span>{{ match.matchDate | date:'fullDate' }}</span>
+      </div>
+      <div class="match-time">
+        <mat-icon>schedule</mat-icon>
+        <span>{{ match.startTime }} - {{ match.endTime }}</span>
+      </div>
+      <div class="match-status">
+        <mat-icon>info</mat-icon>
+        <span class="status-badge status-{{ match.status.toLowerCase() }}">{{ match.status }}</span>
+      </div>
+      </div>
+
+    <div class="participants-summary">
+      <div class="summary-item">
+        <span class="summary-label">Accepted:</span>
+        <span class="summary-value accepted">{{ acceptedParticipants.length }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Pending:</span>
+        <span class="summary-value pending">{{ pendingParticipants.length }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Min Required:</span>
+        <span class="summary-value required">{{ match.minParticipants }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Team Member Selection (for Organizers) -->
+  <div *ngIf="!loading && isOrganizer && teamMembers.length > 0" class="team-selection-section">
+    <h3 class="section-title">
+      <mat-icon class="section-icon">person_add</mat-icon>
+      Select Team Members
+    </h3>
+    
+    <div class="team-members-grid">
+      <mat-card *ngFor="let member of teamMembers" class="member-card">
+        <mat-card-header>
+          <div class="member-info">
+            <mat-card-title class="member-name">{{ member.username }}</mat-card-title>
+            <mat-card-subtitle class="member-role">{{ member.role }}</mat-card-subtitle>
+          </div>
+          <div class="member-status">
+            <mat-icon *ngIf="isParticipant(member.userId)" class="status-icon accepted">check_circle</mat-icon>
+            <mat-icon *ngIf="!isParticipant(member.userId)" class="status-icon available">person</mat-icon>
+          </div>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <p class="member-email">{{ member.email }}</p>
+        </mat-card-content>
+        
+        <mat-card-actions class="member-actions">
+          <button 
+            *ngIf="!isParticipant(member.userId)"
+            mat-raised-button 
+            color="primary" 
+            (click)="inviteTeamMember(member)"
+            [disabled]="acceptedParticipants.length >= (match?.maxParticipants || 0)"
+            class="invite-btn">
+            <mat-icon>add</mat-icon>
+            Invite
+          </button>
+          <button 
+            *ngIf="isParticipant(member.userId)"
+            mat-raised-button 
+            color="warn" 
+            (click)="removeParticipant(member.userId)"
+            class="remove-btn">
+            <mat-icon>remove</mat-icon>
+            Remove
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Participation Requests (for Organizers) -->
+  <div *ngIf="!loading && isOrganizer && participationRequests.length > 0" class="requests-section">
+    <h3 class="section-title">
+      <mat-icon class="section-icon">pending_actions</mat-icon>
+      Participation Requests ({{ participationRequests.length }})
+    </h3>
+    
+    <div class="requests-grid">
+      <mat-card *ngFor="let request of participationRequests" class="request-card">
+        <mat-card-header>
+          <div class="request-info">
+            <mat-card-title class="request-name">{{ getParticipantName(request.userId) }}</mat-card-title>
+            <mat-card-subtitle class="request-email">{{ getParticipantEmail(request.userId) }}</mat-card-subtitle>
+          </div>
+          <div class="request-status pending">
+            <mat-icon>schedule</mat-icon>
+            <span>Pending</span>
+          </div>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <p class="request-message">{{ getParticipantName(request.userId) }} wants to participate in this match.</p>
+          <div class="request-meta">
+            <span class="request-date">{{ getTimeAgo(request.createdAt) }}</span>
+          </div>
+        </mat-card-content>
+        
+        <mat-card-actions class="request-actions">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="approveParticipation(request.id)"
+            [disabled]="acceptedParticipants.length >= (match?.maxParticipants || 0)"
+            class="approve-btn">
+            <mat-icon>check</mat-icon>
+            Approve
+          </button>
+          <button 
+            mat-raised-button 
+            color="warn" 
+            (click)="rejectParticipation(request.id)"
+            class="reject-btn">
+            <mat-icon>close</mat-icon>
+            Reject
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Current Participants -->
+  <div *ngIf="!loading && acceptedParticipants.length > 0" class="participants-section">
+    <h3 class="section-title">
+      <mat-icon class="section-icon">group</mat-icon>
+      Accepted Participants ({{ acceptedParticipants.length }})
+    </h3>
+    
+    <div class="participants-grid">
+      <mat-card *ngFor="let participant of acceptedParticipants" class="participant-card">
+        <mat-card-header>
+          <div class="participant-info">
+            <mat-card-title class="participant-name">{{ getParticipantName(participant.userId) }}</mat-card-title>
+            <mat-card-subtitle class="participant-email">{{ getParticipantEmail(participant.userId) }}</mat-card-subtitle>
+          </div>
+          <div class="participant-status accepted">
+            <mat-icon>check_circle</mat-icon>
+            <span>Accepted</span>
+          </div>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="participant-meta">
+            <span class="participant-date">Joined: {{ getTimeAgo(participant.respondedAt || participant.createdAt) }}</span>
+          </div>
+        </mat-card-content>
+        
+        <mat-card-actions *ngIf="isOrganizer" class="participant-actions">
+          <button 
+            mat-raised-button 
+            color="warn" 
+            (click)="removeParticipant(participant.userId)"
+            class="remove-btn">
+            <mat-icon>remove</mat-icon>
+            Remove
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Request to Participate (for Players) -->
+  <div *ngIf="!loading && !isOrganizer && !hasRequestedParticipation" class="request-participation-section">
+    <h3 class="section-title">
+      <mat-icon class="section-icon">person_add</mat-icon>
+      Request to Participate
+    </h3>
+    
+    <div class="request-participation-card">
+      <p>Would you like to participate in this match?</p>
+      <div class="participation-actions">
+        <button 
+          mat-raised-button 
+          color="primary" 
+          (click)="requestParticipation()"
+          [disabled]="acceptedParticipants.length >= (match?.maxParticipants || 0)"
+          class="request-btn">
+          <mat-icon>add</mat-icon>
+          Request Participation
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Participants State -->
+  <div *ngIf="!loading && acceptedParticipants.length === 0 && !isOrganizer" class="no-participants">
+    <mat-icon class="empty-icon">group_off</mat-icon>
+    <h3>No participants yet</h3>
+    <p>No one has joined this match yet. Be the first to participate!</p>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div *ngIf="successMessage" class="success-message" role="alert">
+    <mat-icon>check_circle</mat-icon>
+    {{ successMessage }}
+  </div>
+  
+  <div *ngIf="errorMessage" class="error-message" role="alert">
+    <mat-icon>error</mat-icon>
+    {{ errorMessage }}
+  </div>
+</div>

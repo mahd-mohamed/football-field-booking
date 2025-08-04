@@ -1,0 +1,64 @@
+<mat-nav-list *ngIf="role; else loginMsg">
+  <a
+    mat-list-item
+    routerLink="/dashboard/overview"
+    routerLinkActive="active-link"
+    [routerLinkActiveOptions]="{ exact: true }"
+  >
+    <mat-icon class="me-2">dashboard</mat-icon>
+    Overview
+  </a>
+
+  <a *ngIf="role === 'ADMIN'" mat-list-item routerLink="/dashboard/users" routerLinkActive="active-link">
+    <mat-icon class="me-2">group</mat-icon>
+    Users
+  </a>
+
+  <a *ngIf="canAccessTeams && role !== 'ADMIN'" mat-list-item routerLink="/dashboard/teams" routerLinkActive="active-link">
+    <mat-icon class="me-2">groups</mat-icon>
+    Teams
+  </a>
+
+  <a *ngIf="canAccessMatches && role !== 'ADMIN'" mat-list-item routerLink="/dashboard/matches" routerLinkActive="active-link">
+    <mat-icon class="me-2">sports_soccer</mat-icon>
+    Matches
+  </a>
+
+  <a *ngIf="canAccessPlaces" mat-list-item routerLink="/dashboard/places" routerLinkActive="active-link">
+    <mat-icon class="me-2">location_on</mat-icon>
+    Places
+  </a>
+
+  <a *ngIf="canAccessBookings && role === 'ADMIN'" mat-list-item routerLink="/dashboard/admin/bookings" routerLinkActive="active-link">
+    <mat-icon class="me-2">event</mat-icon>
+    Manage Bookings
+  </a>
+
+  <a *ngIf="canAccessBookings && role !== 'ADMIN'" mat-list-item routerLink="/dashboard/bookings" routerLinkActive="active-link">
+    <mat-icon class="me-2">event</mat-icon>
+    My Bookings
+  </a>
+
+  <a *ngIf="canAccessProfile && role !== 'ADMIN'" mat-list-item routerLink="/dashboard/profile" routerLinkActive="active-link">
+    <mat-icon class="me-2">person</mat-icon>
+    Profile
+  </a>
+
+  <!-- Notifications with badge -->
+  <a *ngIf="role !== 'ADMIN'" mat-list-item routerLink="/dashboard/notifications" routerLinkActive="active-link" class="notification-link">
+    <mat-icon class="me-2">notifications</mat-icon>
+    Notifications
+    <span *ngIf="unreadNotificationCount > 0" class="notification-badge">
+      {{ unreadNotificationCount > 99 ? '99+' : unreadNotificationCount }}
+    </span>
+  </a>
+
+  <!-- Logout button -->
+  <a mat-list-item (click)="logout()" class="logout-button">
+    <mat-icon class="me-2">logout</mat-icon>
+    Logout
+  </a>
+</mat-nav-list>
+<ng-template #loginMsg>
+  <div class="text-center text-muted mt-4">Please login to see dashboard links.</div>
+</ng-template>

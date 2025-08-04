@@ -1,0 +1,76 @@
+.register-card {
+  max-width: 400px;
+  margin: 60px auto;
+  padding: 2rem 2.5rem;
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #222;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.register-card h2 {
+  font-weight: 700;
+  color: #1976d2;
+}
+
+.form-label {
+  font-weight: 500;
+}
+
+.btn.mat-raised-button {
+  background: linear-gradient(90deg, #1976d2 0%, #42a5f5 100%);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+}
+
+.input-group-text {
+  background: transparent;
+  border: none;
+  color: #1976d2;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+}
+
+.input-group .form-control {
+  border-left: none;
+}
+
+.input-group .btn {
+  border-left: none;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.7s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 600px) {
+  .register-card {
+    padding: 1rem;
+    max-width: 95vw;
+  }
+}
+
+.error {
+  font-size: 1rem;
+  color: #d32f2f;
+}

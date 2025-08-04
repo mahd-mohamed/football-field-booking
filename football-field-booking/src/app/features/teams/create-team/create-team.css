@@ -1,0 +1,193 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Define color variables based on the reference design */
+:root {
+  --dark-bg: #212121;
+  --dark-border: #414141;
+  --gradient-start: #e81cff; /* Purple */
+  --gradient-end: #40c9ff;   /* Blue */
+  --text-color: white;
+  --label-color: #717171;
+  --placeholder-opacity: 0.5;
+  --button-bg: #313131;
+}
+
+:host {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    background-color: var(--dark-bg); /* Dark background for the whole page */
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 1rem;
+    box-sizing: border-box;
+    color: var(--text-color); /* Default text color for the host */
+}
+
+/* Form card styles - Replicated from the reference .form-container */
+.form-card {
+    width: 100%;
+    max-width: 400px; /* Set max-width as per reference */
+    background: linear-gradient(var(--dark-bg), var(--dark-bg)) padding-box,
+                linear-gradient(145deg, transparent 35%, var(--gradient-start), var(--gradient-end)) border-box;
+    border: 2px solid green;
+    padding: 32px 24px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-sizing: border-box;
+    border-radius: 16px;
+    animation: fadeIn 1s ease-out; /* Keeping a subtle animation */
+    position: relative;
+    z-index: 10;
+}
+
+/* Form title */
+.form-card .card-title {
+    font-size: 24px; /* Adjust font size for title */
+    font-weight: 700;
+    margin-bottom: 10px; /* Adjusted margin */
+    color: var(--text-color); /* Ensure title color is white */
+}
+
+/* Form styles - Replicated from the reference .form */
+.form-card .form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Form group styles - Replicated from the reference .form-group */
+.form-card .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Label styles - Replicated from the reference .form-group label */
+.form-card .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--label-color);
+    font-weight: 600;
+    font-size: 12px;
+}
+
+/* Input and textarea styles - Replicated from the reference .form-group input/textarea */
+.form-card .form-group input,
+.form-card .form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: var(--text-color);
+    font-family: inherit;
+    background-color: transparent;
+    border: 1px solid green;
+    box-sizing: border-box; /* Crucial for width calculation */
+}
+
+/* Textarea specific height */
+.form-card .form-group textarea {
+    height: 96px; /* Specific height for textarea */
+    resize: none; /* Prevent manual resizing */
+}
+
+/* Placeholder styles */
+.form-card .form-group input::placeholder,
+.form-card .form-group textarea::placeholder {
+    opacity: var(--placeholder-opacity);
+    color: var(--text-color); /* Ensure placeholder text is visible */
+}
+
+/* Focus styles for input and textarea */
+.form-card .form-group input:focus,
+.form-card .form-group textarea:focus {
+    outline: none;
+    border-color: var(--gradient-start); /* Gradient start color on focus */
+}
+
+/* Submit button styles - Replicated from the reference .form-submit-btn */
+.form-card .btn {
+    width: auto;
+    padding: 0.75rem 1.5rem;
+    background-color: #22c55e;
+    color: white;
+    font-weight: 700;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border: none;
+}
+
+
+.form-card .form-submit-btn:hover {
+    background-color: var(--card-bg); /* White on hover */
+    border-color: var(--card-bg); /* White border on hover */
+    color: var(--dark-bg); /* Dark text on white hover */
+}
+
+.form-card .form-submit-btn:active {
+    scale: 0.95; /* Scale down on click */
+}
+
+.form-card .form-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Error and success message styles (adapted for new theme) */
+.error-text {
+    color: red;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    text-align: left;
+}
+
+.success-message {
+    background-color: rgba(34, 197, 94, 0.1); /* Keep original success color, but adapt opacity */
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.error-message-alert {
+    background-color: rgba(220, 38, 38, 0.1); /* Keep original error color, but adapt opacity */
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* Removed user-icon-top and all field-element related styles */
+/* Keyframe Animations */
+@keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(-20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .form-card {
+        padding: 24px 16px; /* Adjust padding for smaller screens */
+        border-radius: 12px;
+    }
+    .form-card .card-title {
+        font-size: 20px;
+    }
+    .form-card .form-submit-btn {
+        width: 60%; /* Adjust button width for mobile */
+    }
+}

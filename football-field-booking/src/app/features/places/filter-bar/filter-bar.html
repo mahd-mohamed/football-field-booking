@@ -1,0 +1,16 @@
+<div class="row g-2 align-items-center mb-4">
+  <div class="col-12 col-md-6 col-lg-4">
+    <label class="form-label mb-1">Location</label>
+    <select class="form-select" [(ngModel)]="selectedLocation" (change)="onFilterChange()">
+      <option value="">All</option>
+      <option *ngFor="let loc of locations" [value]="loc">{{ loc }}</option>
+    </select>
+  </div>
+  <div class="col-12 col-md-6 col-lg-4">
+    <label class="form-label mb-1">Type</label>
+    <select class="form-select" [(ngModel)]="selectedType" (change)="onFilterChange()">
+      <option value="">All</option>
+      <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+    </select>
+  </div>
+</div>

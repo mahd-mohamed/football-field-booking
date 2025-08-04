@@ -1,0 +1,103 @@
+<div class="match-list-container">
+  <!-- Header Section -->
+  <div class="match-header">
+    <div class="header-content">
+      <h1>Match Management</h1>
+      <p>Schedule matches, view participants, and manage your football games</p>
+    </div>
+    <button mat-raised-button color="primary" (click)="goToScheduleMatch()" class="create-match-btn">
+      <mat-icon>add</mat-icon>
+      Schedule Match
+    </button>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+
+
+  <!-- My Scheduled Matches Section -->
+  <div class="matches-section">
+    <h2>My Scheduled Matches</h2>
+    
+    <div *ngIf="matches.length === 0" class="no-matches">
+      <mat-icon>sports_soccer</mat-icon>
+      <h3>No Matches Scheduled</h3>
+      <p>You haven't scheduled any matches yet. Click "Schedule New Match" to get started!</p>
+    </div>
+
+    <div *ngIf="matches.length > 0" class="matches-grid">
+      <mat-card *ngFor="let match of matches" class="match-card">
+        <mat-card-header>
+          <mat-card-title>{{ match.matchDate | date:'mediumDate' }}</mat-card-title>
+          <mat-card-subtitle>{{ match.startTime }} - {{ match.endTime }}</mat-card-subtitle>
+          <mat-chip [color]="getStatusColor(match.status)" selected class="status-chip">
+            {{ match.status }}
+          </mat-chip>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="match-details">
+            <div class="detail-item">
+              <mat-icon>group</mat-icon>
+              <span>{{ match.minParticipants }} - {{ match.maxParticipants }} participants</span>
+            </div>
+            <div class="detail-item" *ngIf="match.description">
+              <mat-icon>description</mat-icon>
+              <span>{{ match.description }}</span>
+            </div>
+            <div class="detail-item">
+              <mat-icon>event</mat-icon>
+              <span>{{ match.matchDate | date:'fullDate' }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions align="end">
+          <button mat-button (click)="goToMatchDetails(match.id)">
+            <mat-icon>visibility</mat-icon>
+            View Details
+          </button>
+          <button mat-button color="primary" (click)="goToMatchParticipants(match.id, match.teamId)">
+            <mat-icon>group</mat-icon>
+            View Participants
+          </button>
+
+          <button mat-button color="warn" (click)="deleteMatch(match.id)">
+            <mat-icon>delete</mat-icon>
+            Delete
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Match Statistics -->
+  <!-- <div *ngIf="matches.length > 0" class="match-stats">
+    <h2>Match Statistics</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">{{ matches.length }}</div>
+        <div class="stat-label">Total Matches</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ getConfirmedMatches() }}</div>
+        <div class="stat-label">Confirmed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ getScheduledMatches() }}</div>
+        <div class="stat-label">Scheduled</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ getCancelledMatches() }}</div>
+        <div class="stat-label">Cancelled</div>
+      </div>
+    </div>
+  </div> -->
+
+</div>

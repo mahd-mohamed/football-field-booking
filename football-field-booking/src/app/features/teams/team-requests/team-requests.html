@@ -1,0 +1,140 @@
+<div class="team-requests-container">
+  <div class="requests-header">
+    <h2 class="requests-title">
+      <mat-icon class="requests-icon">group_add</mat-icon>
+      Team Requests
+    </h2>
+    <p class="requests-subtitle">Manage team invitations and join requests</p>
+    <!-- Test button for debugging -->
+    <button mat-raised-button color="accent" (click)="addTestJoinRequest()" class="test-button">
+      <mat-icon>bug_report</mat-icon>
+      Add Test Request
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading requests...</p>
+  </div>
+
+  <!-- No Requests State -->
+  <div *ngIf="!loading && pendingInvitations.length === 0 && joinRequests.length === 0" class="no-requests">
+    <mat-icon class="empty-icon">inbox</mat-icon>
+    <h3>No pending requests</h3>
+    <p>You don't have any pending team invitations or join requests at the moment.</p>
+  </div>
+
+  <!-- Pending Invitations Section -->
+  <div *ngIf="!loading && pendingInvitations.length > 0" class="requests-section">
+    <h3 class="section-title">
+      <mat-icon class="section-icon">mail</mat-icon>
+      Pending Invitations ({{ pendingInvitations.length }})
+    </h3>
+    
+    <div class="requests-grid">
+      <mat-card *ngFor="let invitation of pendingInvitations" class="request-card invitation-card">
+        <mat-card-header>
+          <div class="request-header-content">
+            <div class="team-info">
+              <mat-card-title class="team-name">{{ invitation.teamName }}</mat-card-title>
+              <mat-card-subtitle class="invited-by">Invited by: {{ invitation.invitedBy }}</mat-card-subtitle>
+            </div>
+            <div class="request-status pending">
+              <mat-icon>schedule</mat-icon>
+              <span>Pending</span>
+            </div>
+          </div>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <p class="request-message">You've been invited to join this team as a {{ invitation.role.toLowerCase() }}.</p>
+          <div class="request-meta">
+            <span class="request-date">{{ getTimeAgo(invitation.createdAt) }}</span>
+          </div>
+        </mat-card-content>
+        
+        <mat-card-actions class="request-actions">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="respondToInvitation(invitation.id, 'APPROVED')"
+            class="approve-btn">
+            <mat-icon>check</mat-icon>
+            Accept
+          </button>
+          <button 
+            mat-raised-button 
+            color="warn" 
+            (click)="respondToInvitation(invitation.id, 'REJECTED')"
+            class="reject-btn">
+            <mat-icon>close</mat-icon>
+            Decline
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Join Requests Section (for Organizers) -->
+  <div *ngIf="!loading && joinRequests.length > 0" class="requests-section">
+    <h3 class="section-title">
+      <mat-icon class="section-icon">person_add</mat-icon>
+      Join Requests ({{ joinRequests.length }})
+    </h3>
+    
+    <div class="requests-grid">
+      <mat-card *ngFor="let request of joinRequests" class="request-card join-request-card">
+        <mat-card-header>
+          <div class="request-header-content">
+            <div class="user-info">
+              <mat-card-title class="user-name">{{ request.username }}</mat-card-title>
+              <mat-card-subtitle class="user-email">{{ request.email }}</mat-card-subtitle>
+            </div>
+            <div class="request-status pending">
+              <mat-icon>schedule</mat-icon>
+              <span>Pending</span>
+            </div>
+          </div>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <p class="request-message">{{ request.username }} wants to join your team "{{ request.teamName }}".</p>
+          <div class="request-meta">
+            <span class="request-date">{{ getTimeAgo(request.createdAt) }}</span>
+          </div>
+        </mat-card-content>
+        
+        <mat-card-actions class="request-actions">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="respondToJoinRequest(request.id, 'APPROVED')"
+            class="approve-btn">
+            <mat-icon>check</mat-icon>
+            Approve
+          </button>
+          <button 
+            mat-raised-button 
+            color="warn" 
+            (click)="respondToJoinRequest(request.id, 'REJECTED')"
+            class="reject-btn">
+            <mat-icon>close</mat-icon>
+            Reject
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div *ngIf="successMessage" class="success-message" role="alert">
+    <mat-icon>check_circle</mat-icon>
+    {{ successMessage }}
+  </div>
+  
+  <div *ngIf="errorMessage" class="error-message" role="alert">
+    <mat-icon>error</mat-icon>
+    {{ errorMessage }}
+  </div>
+</div>

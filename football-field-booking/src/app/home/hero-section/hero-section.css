@@ -1,0 +1,30 @@
+.hero {
+  position: relative;
+  height: 100vh;
+  background-image: url('/photo-1585170236738-aadfce97f025.jpeg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: none !important; /* Remove any shadow if applied */
+}
+
+.hero .overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.2); /* Dark overlay for text readability */
+  z-index: 0;
+}
+
+.hero .content {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+}
+
+.hero h2,
+.hero p {
+  color: #fff;
+}

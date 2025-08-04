@@ -1,0 +1,67 @@
+/* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Global styles to ensure sidebar is always visible */
+.dashboard-layout {
+  display: flex !important;
+  height: 100vh !important;
+  width: 100% !important;
+}
+
+.dashboard-layout .sidebar {
+  width: 250px !important;
+  min-width: 250px !important;
+  max-width: 250px !important;
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  height: 100vh !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+  z-index: 1000 !important;
+}
+
+.dashboard-layout .content {
+  margin-left: 250px !important;
+  width: calc(100% - 250px) !important;
+  flex-grow: 1 !important;
+}
+
+/* Prevent any responsive hiding of sidebar */
+@media (max-width: 768px) {
+  .dashboard-layout .sidebar {
+    width: 250px !important;
+    min-width: 250px !important;
+    max-width: 250px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  .dashboard-layout .content {
+    margin-left: 250px !important;
+    width: calc(100% - 250px) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-layout .sidebar {
+    width: 250px !important;
+    min-width: 250px !important;
+    max-width: 250px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  .dashboard-layout .content {
+    margin-left: 250px !important;
+    width: calc(100% - 250px) !important;
+  }
+}

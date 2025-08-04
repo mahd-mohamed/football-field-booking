@@ -1,0 +1,89 @@
+<div class="booking-list-container">
+  <!-- Header Section -->
+  <div class="booking-header">
+    <div class="header-content">
+      <h1>My Bookings</h1>
+      <p>Manage your upcoming field bookings and view your schedule</p>
+    </div>
+    <button mat-raised-button color="primary" (click)="createNewBooking()" class="create-booking-btn">
+      <mat-icon>add</mat-icon>
+      New Booking
+    </button>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div *ngIf="successMessage" class="success-message" role="alert">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="error-message" role="alert">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-section">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading your bookings...</p>
+  </div>
+
+  <!-- Bookings Content -->
+  <div *ngIf="!isLoading" class="bookings-content">
+    <div class="tab-content">
+      <div *ngIf="upcomingBookings.length === 0" class="no-bookings">
+        <mat-icon>event_busy</mat-icon>
+        <h3>No Upcoming Bookings</h3>
+        <p>You don't have any upcoming bookings. Create a new booking to get started!</p>
+        <button mat-raised-button color="primary" (click)="createNewBooking()">
+          Create Booking
+        </button>
+      </div>
+
+      <div *ngIf="upcomingBookings.length > 0" class="bookings-grid">
+        <mat-card *ngFor="let booking of upcomingBookings" [class]="getBookingCardClass(booking)" class="booking-card">
+          <mat-card-header>
+            <mat-card-title>{{ booking.place_name }}</mat-card-title>
+            <mat-card-subtitle>{{ booking.team_name }}</mat-card-subtitle>
+            <mat-chip [color]="getStatusColor(booking.status)" selected class="status-chip">
+              {{ getStatusText(booking.status) }}
+            </mat-chip>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div class="booking-details">
+              <div class="detail-item">
+                <mat-icon>event</mat-icon>
+                <span>{{ formatDate(booking.start_time) }}</span>
+              </div>
+              <div class="detail-item">
+                <mat-icon>schedule</mat-icon>
+                <span>{{ formatDateTime(booking.start_time, booking.end_time) }}</span>
+              </div>
+              <div class="detail-item">
+                <mat-icon>location_on</mat-icon>
+                <span>{{ booking.place_name }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+
+          <mat-card-actions align="end">
+            <button mat-button color="primary" (click)="viewBookingDetails(booking)">
+              <mat-icon>visibility</mat-icon>
+              View Details
+            </button>
+            <button mat-button color="accent" (click)="viewMatchParticipants(booking)">
+              <mat-icon>group</mat-icon>
+              View Participants
+            </button>
+            <button 
+              *ngIf="canCancelBooking(booking)" 
+              mat-button 
+              color="warn" 
+              (click)="cancelBooking(booking)">
+              <mat-icon>cancel</mat-icon>
+              Cancel
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</div> 

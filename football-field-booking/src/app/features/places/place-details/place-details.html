@@ -1,0 +1,16 @@
+<div class="place-details-modal p-4 shadow-lg">
+  <div class="d-flex flex-column align-items-center">
+    <img [src]="place.imageUrl.startsWith('http') ? place.imageUrl : (place.imageUrl.startsWith('/') ? place.imageUrl : '/' + place.imageUrl)" [alt]="place.name" class="place-details-img mb-3" />
+    <h3 class="mb-2 fw-bold text-primary">{{ place.name }}</h3>
+    <div class="mb-2 d-flex gap-2 align-items-center justify-content-center">
+      <span class="badge bg-primary px-3 py-2"><i class="bi bi-people-fill me-1"></i>{{ place.type }}</span>
+      <span class="badge bg-secondary px-3 py-2"><i class="bi bi-geo-alt-fill me-1"></i>{{ place.location }}</span>
+    </div>
+    <p class="mb-3 text-muted fs-5">{{ place.description }}</p>
+    <div *ngIf="isAdmin" class="d-flex gap-2 mt-2">
+      <button class="btn btn-outline-primary btn-sm" (click)="editPlace()"><i class="bi bi-pencil"></i> Edit</button>
+      <button class="btn btn-outline-danger btn-sm" (click)="deletePlace()"><i class="bi bi-trash"></i> Delete</button>
+    </div>
+    <ng-content select=".close-btn"></ng-content>
+  </div>
+</div>

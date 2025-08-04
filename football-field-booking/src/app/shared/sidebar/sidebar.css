@@ -1,0 +1,159 @@
+/* Sidebar Container */
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: #1e1e2f;
+  color: white;
+}
+
+/* Active link styling */
+.active-link {
+  background-color: #3f51b5;
+  color: white !important;
+  border-radius: 5px;
+}
+
+/* Navigation list styling */
+mat-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* List item styling */
+mat-nav-list a[mat-list-item] {
+  color: #fff !important;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  transition: color 0.2s;
+  margin: 2px 0;
+  border-radius: 5px;
+  padding: 8px 12px;
+}
+
+/* Icon styling */
+mat-nav-list a[mat-list-item] mat-icon {
+  color: #fff !important;
+  opacity: 1 !important;
+  margin-right: 12px;
+}
+
+/* Hover effects */
+mat-nav-list a[mat-list-item]:hover {
+  color: #90caf9 !important;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+mat-nav-list a[mat-list-item]:hover mat-icon {
+  color: #90caf9 !important;
+}
+
+/* Logout button styling */
+.logout-button {
+  margin-top: auto !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(244, 67, 54, 0.1) !important;
+  color: #ff6b6b !important;
+}
+
+.logout-button:hover {
+  background-color: rgba(244, 67, 54, 0.2) !important;
+  color: #ff8a8a !important;
+}
+
+.logout-button mat-icon {
+  color: #ff6b6b !important;
+}
+
+.logout-button:hover mat-icon {
+  color: #ff8a8a !important;
+}
+
+/* Force white text color for all sidebar elements */
+::ng-deep .sidebar a[mat-list-item],
+::ng-deep .sidebar a[mat-list-item] span,
+::ng-deep .sidebar a[mat-list-item] .mat-list-item-content {
+  color: #fff !important;
+  font-size: 1.08rem;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+/* Ensure sidebar is always visible */
+:host {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Prevent any responsive hiding */
+@media (max-width: 768px) {
+  :host {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  :host {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Notification Badge Styles */
+.notification-link {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  background: #f44336;
+  color: white;
+  border-radius: 50%;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Responsive adjustments for notification badge */
+@media (max-width: 768px) {
+  .notification-badge {
+    top: 6px;
+    right: 12px;
+    min-width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+  }
+}

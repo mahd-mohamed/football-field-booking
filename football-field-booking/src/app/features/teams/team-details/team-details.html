@@ -1,0 +1,175 @@
+<div class="team-details-container">
+  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+
+  <div *ngIf="team; else loadingOrNotFound">
+    <h2>Team Details: {{ team.name }}</h2>
+
+    <!-- Display mode -->
+    <div *ngIf="!isEditing" class="details-card">
+      <p><strong>Name:</strong> {{ team.name }}</p>
+      <p><strong>Description:</strong> {{ team.description || 'N/A' }}</p>
+      <p><strong>Created By:</strong> {{ team.createdBy }}</p>
+      <p><strong>Created At:</strong> {{ team.createdAt | date:'medium' }}</p>
+
+      <div class="button-group">
+        <button *ngIf="isOrganizer" (click)="toggleEditMode()" class="edit-button">
+          <mat-icon>edit</mat-icon>
+          Edit Team
+        </button>
+        <button class="navigate-button" (click)="navigateToMatchParticipants('sample-match-id')">
+          <mat-icon>sports_soccer</mat-icon>
+          View Match Participants (Sample)
+        </button>
+        <button (click)="goBackToList()" class="back-button">
+          <mat-icon>arrow_back</mat-icon>
+          Back to List
+        </button>
+      </div>
+    </div>
+
+    <!-- Edit mode -->
+    <div *ngIf="isEditing" class="edit-card">
+      <h3>Edit Team</h3>
+      <form [formGroup]="editTeamForm" (ngSubmit)="saveTeamChanges()">
+        <div class="form-group">
+          <label for="name">Team Name:</label>
+          <input id="name" type="text" formControlName="name">
+          <div *ngIf="editTeamForm.get('name')?.invalid && (editTeamForm.get('name')?.dirty || editTeamForm.get('name')?.touched)" class="error-message-inline">
+            <div *ngIf="editTeamForm.get('name')?.errors?.['required']">Name is required.</div>
+            <div *ngIf="editTeamForm.get('name')?.errors?.['minlength']">Name must be at least 3 characters.</div>
+            <div *ngIf="editTeamForm.get('name')?.errors?.['maxlength']">Name cannot exceed 50 characters.</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="description">Description:</label>
+          <textarea id="description" formControlName="description" rows="4"></textarea>
+          <div *ngIf="editTeamForm.get('description')?.invalid && (editTeamForm.get('description')?.dirty || editTeamForm.get('description')?.touched)" class="error-message-inline">
+            <div *ngIf="editTeamForm.get('description')?.errors?.['maxlength']">Description cannot exceed 500 characters.</div>
+          </div>
+        </div>
+        <div class="button-group">
+          <button type="submit" [disabled]="editTeamForm.invalid" class="save-button">
+            <mat-icon>save</mat-icon>
+            Save Changes
+          </button>
+          <button type="button" (click)="toggleEditMode()" class="cancel-button">
+            <mat-icon>cancel</mat-icon>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Team Management Section (for Organizers) -->
+    <div *ngIf="isOrganizer" class="team-management-section">
+      <h3>
+        <mat-icon>admin_panel_settings</mat-icon>
+        Team Management
+      </h3>
+      
+      <div class="management-cards">
+        <!-- Invite Players Card -->
+        <div class="management-card">
+          <div class="card-header">
+            <mat-icon class="card-icon">person_add</mat-icon>
+            <h4>Invite Players</h4>
+          </div>
+          <div class="card-content">
+            <p>Invite new players to join your team</p>
+            <button (click)="goToInvitePlayer(team.id)" class="management-button invite-button">
+              <mat-icon>group_add</mat-icon>
+              Invite New Member
+            </button>
+          </div>
+        </div>
+
+        <!-- Team Requests Card -->
+        <div class="management-card">
+          <div class="card-header">
+            <mat-icon class="card-icon">pending_actions</mat-icon>
+            <h4>Team Requests</h4>
+          </div>
+          <div class="card-content">
+            <p>Review and manage join requests</p>
+            <button (click)="goToTeamRequests()" class="management-button requests-button">
+              <mat-icon>list_alt</mat-icon>
+              View Requests
+            </button>
+          </div>
+        </div>
+
+        <!-- Team Members Card -->
+        <div class="management-card">
+          <div class="card-header">
+            <mat-icon class="card-icon">group</mat-icon>
+            <h4>Current Members</h4>
+          </div>
+          <div class="card-content">
+            <p>Manage existing team members</p>
+            <button (click)="goToTeamMembers()" class="management-button members-button">
+              <mat-icon>people</mat-icon>
+              Manage Members
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Request to Join Team Section (for non-members) -->
+    <div *ngIf="!isOrganizer && !isTeamMember && !hasRequestedJoin" class="join-request-section">
+      <h3>
+        <mat-icon>group_add</mat-icon>
+        Join This Team
+      </h3>
+      <div class="join-request-card">
+        <p>Would you like to join this team?</p>
+        <div class="join-request-actions">
+          <button (click)="requestToJoinTeam()" class="join-request-button">
+            <mat-icon>group_add</mat-icon>
+            Request to Join Team
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Join Request Status (for users who have requested) -->
+    <div *ngIf="!isOrganizer && hasRequestedJoin" class="join-request-status">
+      <h3>
+        <mat-icon>schedule</mat-icon>
+        Join Request Status
+      </h3>
+      <div class="join-request-status-card">
+        <mat-icon class="status-icon pending">schedule</mat-icon>
+        <p>Your request to join this team is pending approval.</p>
+        <p class="status-note">The team organizer will review your request and notify you of their decision.</p>
+      </div>
+    </div>
+
+    <!-- Team Members Section -->
+    <h3>
+      <mat-icon>group</mat-icon>
+      Team Members
+    </h3>
+    <div class="team-members-list">
+      <div *ngIf="teamMembers.length === 0" class="no-members-message">No members in this team yet.</div>
+      <div *ngFor="let member of teamMembers" class="member-card">
+        <div class="member-info">
+          <p><strong>Name:</strong> {{ getUserForTeamMember(member.userId)?.username || 'Unknown User' }}</p>
+          <p><strong>Email:</strong> {{ getUserForTeamMember(member.userId)?.email || 'N/A' }}</p>
+          <p><strong>Role:</strong> {{ member.role }}</p>
+          <p><strong>Status:</strong> {{ member.status }}</p>
+        </div>
+        <button *ngIf="isOrganizer" (click)="removeTeamMember(member.id)" class="remove-button">
+          <mat-icon>remove_circle</mat-icon>
+          Remove
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <ng-template #loadingOrNotFound>
+    <div class="loading-state">Loading team details or Team not found...</div>
+  </ng-template>
+</div>

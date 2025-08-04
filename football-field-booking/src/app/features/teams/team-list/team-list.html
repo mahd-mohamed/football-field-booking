@@ -1,0 +1,42 @@
+<section class="container p-2 ">
+  <div class="content-wrapper">
+    <!-- Header Section -->
+    <div class="team-header">
+      <div class="header-content">
+        <h1>My Teams</h1>
+        <p>Create and manage your football teams</p>
+      </div>
+      <button mat-raised-button color="primary" (click)="goToCreateTeam()" class="create-team-btn">
+        <mat-icon>add</mat-icon>
+        Create Team
+      </button>
+    </div>
+
+    <div class="main-content-area mb-2 ">
+      <div *ngIf="successMessage" class="success-message" role="alert">
+        {{ successMessage }}
+      </div>
+      <div *ngIf="errorMessage" class="error-message-alert" role="alert">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="teams.length === 0; else teamListContent" class="no-teams-message">
+        <p>You haven't created any teams yet. Click the plus icon to create your first team!</p>
+        <p class="team-count">Teams created: {{ teams.length }}</p>
+      </div>
+
+      <ng-template #teamListContent>
+        <mat-card *ngFor="let team of teams" class="team-card-item" (click)="goToTeamDetails(team.id)" appearance="outlined">
+          <mat-card-header>
+            <mat-card-title class="team-item-name">{{ team.name }}</mat-card-title>
+            <mat-card-subtitle class="team-item-description">{{ team.description || 'No description provided.' }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-actions align="end">
+            <button *ngIf="isTeamOrganizer(team)" mat-button class="delete-button" (click)="deleteTeam(team.id); $event.stopPropagation()">Delete</button>
+          </mat-card-actions>
+        </mat-card>
+      </ng-template>
+    </div>
+
+    </div>
+</section>
