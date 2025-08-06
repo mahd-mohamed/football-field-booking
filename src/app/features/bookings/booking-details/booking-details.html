@@ -142,4 +142,12 @@
       Back to Bookings
     </button>
   </div>
+
+  <!-- Confirmation Dialog -->
+  <app-confirmation-dialog 
+    *ngIf="showConfirmationDialog"
+    [data]="confirmationDialogData"
+    (confirmed)="onConfirmationConfirmed()"
+    (cancelled)="onConfirmationCancelled()">
+  </app-confirmation-dialog>
 </div>

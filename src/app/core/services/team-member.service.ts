@@ -181,21 +181,21 @@ export class TeamMemberService {
    * @param teamId The ID of the team
    * @returns Observable with boolean indicating if the user is an organizer
    */
-  isOrganizer(userId: string, teamId: string): Observable<boolean> {
-    if (!userId || !teamId) {
-      return throwError(() => new Error('User ID and Team ID are required'));
-    }
+  // isOrganizer(userId: string, teamId: string): Observable<boolean> {
+  //   if (!userId || !teamId) {
+  //     return throwError(() => new Error('User ID and Team ID are required'));
+  //   }
 
-    return this.http.get<{ isOrganizer: boolean }>(
-      `${this.apiUrl}/is-organizer?userId=${userId}&teamId=${teamId}`
-    ).pipe(
-      map(response => response.isOrganizer),
-      catchError(error => {
-        console.error('Error checking organizer status:', error);
-        return throwError(() => new Error(error.error?.message || 'Failed to check organizer status'));
-      })
-    );
-  }
+  //   return this.http.get<{ isOrganizer: boolean }>(
+  //     `${this.apiUrl}/is-organizer?userId=${userId}&teamId=${teamId}`
+  //   ).pipe(
+  //     map(response => response.isOrganizer),
+  //     catchError(error => {
+  //       console.error('Error checking organizer status:', error);
+  //       return throwError(() => new Error(error.error?.message || 'Failed to check organizer status'));
+  //     })
+  //   );
+  // }
 
 
 

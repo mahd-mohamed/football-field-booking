@@ -11,6 +11,7 @@ import { NotificationService, INotification, RequestType } from '../../../core/s
 import { TeamMemberService, TeamMemberStatus } from '../../../core/services/team-member.service';
 import { MatchParticipantService } from '../../../core/services/match-participant.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { WebSocketService } from '../../../core/services/websocket.service';
 // TODO: Add imports for other services when they become available
 // import { MatchService } from '../../../core/services/match.service';
 // import { TeamInvitationService } from '../../../core/services/team-invitation.service';
@@ -40,6 +41,7 @@ export class NotificationList implements OnInit, OnDestroy {
     private teamMemberService: TeamMemberService,
     private matchParticipantService: MatchParticipantService,
     private authService: AuthService,
+    private webSocketService: WebSocketService,
     private router: Router
     // TODO: Add other services when available
     // private matchService: MatchService,
@@ -48,6 +50,9 @@ export class NotificationList implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadNotifications();
+    this.webSocketService.onNotification().subscribe(() => {
+      this.loadNotifications();
+    });
   }
 
   ngOnDestroy(): void {

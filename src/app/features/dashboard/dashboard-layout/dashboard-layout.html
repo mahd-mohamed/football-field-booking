@@ -1,6 +1,10 @@
 <div class="dashboard-layout">
+  <!-- Mobile Hamburger Button -->
+  <button class="btn btn-primary d-md-none mb-2 ms-2 mt-2" type="button" (click)="sidebarOpen = !sidebarOpen" aria-label="Toggle sidebar">
+    <span class="navbar-toggler-icon"></span>
+  </button>
   <!-- Sidebar Section -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.sidebar-open]="sidebarOpen" [class.d-none]="!sidebarOpen && isMobile()" [class.d-block]="sidebarOpen && isMobile()">
     <app-sidebar></app-sidebar>
   </aside>
 

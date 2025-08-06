@@ -9,11 +9,13 @@ import { ITeam, ITeamMember, TeamMemberRole, TeamMemberStatus, TeamService } fro
 import { TeamMemberService, ITeamMemberUpdateRequest } from '../../../core/services/team-member.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
+import { ConfirmationDialogComponent, ConfirmationDialogData } from '../../../shared/confirmation-dialog/confirmation-dialog';
 
 import { IUser } from '../../../core/models/iuser.model';
 @Component({
   selector: 'app-team-details',
-  imports: [CommonModule, ReactiveFormsModule, DatePipe, MatIconModule],
+  imports: [CommonModule, ReactiveFormsModule, DatePipe, MatIconModule, ConfirmationDialogComponent],
   templateUrl: './team-details.html',
   styleUrls: ['./team-details.css']
 })
@@ -28,6 +30,16 @@ export class TeamDetails implements OnInit, OnDestroy {
   hasRequestedJoin: boolean = false;
   isEditing: boolean = false;
   editTeamForm!: FormGroup;
+  
+  // Confirmation dialog properties
+  showConfirmationDialog: boolean = false;
+  confirmationDialogData: ConfirmationDialogData = {
+    title: '',
+    message: '',
+    type: 'warning'
+  };
+  pendingAction: 'remove' | 'makeOrganizer' | null = null;
+  pendingMember: ITeamMember | null = null;
 
   private destroy$ = new Subject<void>();
   // private mockMatchIdToLink: string = 'match_for_dynamic_team';
@@ -40,6 +52,7 @@ export class TeamDetails implements OnInit, OnDestroy {
     private teamMemberService: TeamMemberService,
     private authService: AuthService,
     private notificationService: NotificationService,
+    private errorHandler: ErrorHandlerService,
     private fb: FormBuilder
   ) { }
 
@@ -169,6 +182,10 @@ export class TeamDetails implements OnInit, OnDestroy {
       next: (response) => {
         console.log('Join request successful:', response);
         this.hasRequestedJoin = true;
+        
+        // Show success snack bar notification
+        this.errorHandler.showSuccessNotification('Your request to join the team has been sent successfully!');
+        
         this.successMessage = 'Your request to join the team has been sent successfully!';
 
         // Update the team members list to include the pending request
@@ -222,6 +239,10 @@ export class TeamDetails implements OnInit, OnDestroy {
       this.teamService.updateTeam(this.team.id, teamData).pipe(takeUntil(this.destroy$)).subscribe({
         next: (responseTeam: ITeam) => {
           this.team = responseTeam;
+          
+          // Show success snack bar notification
+          this.errorHandler.showSuccessNotification('Team updated successfully!');
+          
           this.successMessage = 'Team updated successfully!';
           this.errorMessage = null;
           this.isEditing = false;
@@ -240,58 +261,124 @@ export class TeamDetails implements OnInit, OnDestroy {
   }
 
   removeTeamMember(teamMemberId: string): void {
-    if (confirm('Are you sure you want to remove this member from the team?')) {
-      console.log(`TeamDetailsComponent: Initiating removal of team member ${teamMemberId}`);
+    const member = this.teamMembers.find(m => m.id === teamMemberId);
+    if (!member) return;
 
-      this.teamMemberService.removeTeamMember(teamMemberId).subscribe({
-        next: () => {
-          // Only update the UI after successful backend removal
-          this.teamMembers = this.teamMembers.filter(member => member.id !== teamMemberId);
-          this.successMessage = 'Member removed successfully!';
-          this.errorMessage = null;
-          // Success message will be cleared by user interaction or page navigation
-          console.log(`TeamDetailsComponent: Team member ${teamMemberId} removed successfully.`);
-        },
-        error: (error) => {
-          console.error('Error removing team member:', error);
-          this.errorMessage = error.message || 'Failed to remove team member';
-          this.successMessage = null;
-          // Error message will be cleared by user interaction or page navigation
-        }
-      });
-    }
+    this.pendingAction = 'remove';
+    this.pendingMember = member;
+    this.confirmationDialogData = {
+      title: 'Remove Team Member',
+      message: `Are you sure you want to remove ${member.username} from the team? This action cannot be undone.`,
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      type: 'danger'
+    };
+    this.showConfirmationDialog = true;
+  }
+
+  private executeRemoveMember(): void {
+    if (!this.pendingMember) return;
+
+    console.log(`TeamDetailsComponent: Initiating removal of team member ${this.pendingMember.id}`);
+
+    this.teamMemberService.removeTeamMember(this.pendingMember.id).subscribe({
+      next: () => {
+        // Only update the UI after successful backend removal
+        this.teamMembers = this.teamMembers.filter(member => member.id !== this.pendingMember!.id);
+        
+        // Show success snack bar notification
+        this.errorHandler.showSuccessNotification(`${this.pendingMember!.username} has been removed from the team.`);
+        
+        this.successMessage = 'Member removed successfully!';
+        this.errorMessage = null;
+        // Success message will be cleared by user interaction or page navigation
+        console.log(`TeamDetailsComponent: Team member ${this.pendingMember!.id} removed successfully.`);
+        this.closeConfirmationDialog();
+      },
+      error: (error) => {
+        console.error('Error removing team member:', error);
+        this.errorMessage = error.message || 'Failed to remove team member';
+        this.successMessage = null;
+        // Error message will be cleared by user interaction or page navigation
+        this.closeConfirmationDialog();
+      }
+    });
   }
 
   makeOrganizer(member: ITeamMember): void {
-    if (confirm(`Are you sure you want to make ${member.username} an organizer of this team?`)) {
-      console.log(`TeamDetailsComponent: Making ${member.username} an organizer`);
+    this.pendingAction = 'makeOrganizer';
+    this.pendingMember = member;
+    this.confirmationDialogData = {
+      title: 'Make Team Organizer',
+      message: `Are you sure you want to make ${member.username} an organizer of this team? They will have the same management privileges as you.`,
+      confirmText: 'Make Organizer',
+      cancelText: 'Cancel',
+      type: 'warning'
+    };
+    this.showConfirmationDialog = true;
+  }
 
-      const updateRequest: ITeamMemberUpdateRequest = {
-        id: member.id,
-        role: 'ORGANIZER',
-        status: member.status
-      };
+  private executeMakeOrganizer(): void {
+    if (!this.pendingMember) return;
 
-      this.teamMemberService.updateTeamMember(updateRequest).pipe(takeUntil(this.destroy$)).subscribe({
-        next: (updatedMember) => {
-          // Update the member in the local array
-          const memberIndex = this.teamMembers.findIndex(m => m.id === member.id);
-          if (memberIndex !== -1) {
-            this.teamMembers[memberIndex] = updatedMember;
-          }
-          this.successMessage = `${member.username} is now an organizer!`;
-          this.errorMessage = null;
-          // Success message will be cleared by user interaction or page navigation
-          console.log(`TeamDetailsComponent: ${member.username} promoted to organizer successfully.`);
-        },
-        error: (error) => {
-          console.error('Error promoting member to organizer:', error);
-          this.errorMessage = error.message || 'Failed to promote member to organizer';
-          this.successMessage = null;
-          // Error message will be cleared by user interaction or page navigation
+    console.log(`TeamDetailsComponent: Making ${this.pendingMember.username} an organizer`);
+
+    const updateRequest: ITeamMemberUpdateRequest = {
+      id: this.pendingMember.id,
+      role: 'ORGANIZER',
+      status: this.pendingMember.status
+    };
+
+    this.teamMemberService.updateTeamMember(updateRequest).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (updatedMember) => {
+        // Update the member in the local array
+        const memberIndex = this.teamMembers.findIndex(m => m.id === this.pendingMember!.id);
+        if (memberIndex !== -1) {
+          this.teamMembers[memberIndex] = updatedMember;
         }
-      });
+        
+        // Show success snack bar notification
+        this.errorHandler.showSuccessNotification(`${this.pendingMember!.username} is now an organizer!`);
+        
+        this.successMessage = `${this.pendingMember!.username} is now an organizer!`;
+        this.errorMessage = null;
+        // Success message will be cleared by user interaction or page navigation
+        console.log(`TeamDetailsComponent: ${this.pendingMember!.username} promoted to organizer successfully.`);
+        //update the team details to reflect the change
+        this.loadTeamDetails(this.teamId);
+        this.loadTeamMembers(this.teamId);
+        this.checkUserTeamStatus(this.teamId);
+        this.closeConfirmationDialog();
+      },
+      error: (error) => {
+        console.error('Error promoting member to organizer:', error);
+        this.errorMessage = error.message || 'Failed to promote member to organizer';
+        this.successMessage = null;
+        // Error message will be cleared by user interaction or page navigation
+        this.closeConfirmationDialog();
+      }
+    });
+  }
+
+  closeConfirmationDialog(): void {
+    this.showConfirmationDialog = false;
+    this.pendingAction = null;
+    this.pendingMember = null;
+  }
+
+  onConfirmationConfirmed(): void {
+    switch (this.pendingAction) {
+      case 'remove':
+        this.executeRemoveMember();
+        break;
+      case 'makeOrganizer':
+        this.executeMakeOrganizer();
+        break;
     }
+  }
+
+  onConfirmationCancelled(): void {
+    this.closeConfirmationDialog();
   }
 
   // Helper method to check if a member can be removed

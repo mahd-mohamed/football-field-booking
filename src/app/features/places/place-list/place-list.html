@@ -7,7 +7,7 @@
   <div class="d-flex align-items-center justify-content-between mb-4">
     <h2 class="fw-bold text-primary mb-0">Football Places</h2>
     <span class="text-muted section-subtitle">Find and book your favorite pitch</span>
-    <button *ngIf="isAdmin" class="btn btn-success ms-3" (click)="openAddPlaceModal()">
+    <button *ngIf="isAdmin" class="btn btn-success ms-3 btn-add-place" (click)="openAddPlaceModal()">
       <i class="bi bi-plus-circle me-1"></i> Add Place
     </button>
   </div>
@@ -39,7 +39,7 @@
   <div *ngIf="showAddPlaceModal" class="modal-backdrop-custom">
     <div class="modal-dialog-custom">
       <button class="btn-close float-end close-btn" (click)="closeAddPlaceModal()"></button>
-      <form class="p-4" (ngSubmit)="addPlace()" #addPlaceForm="ngForm" style="background: #fff; border-radius: 1.5rem; min-width: 320px; max-width: 400px; margin: 0 auto;">
+      <form class="enhanced-form" (ngSubmit)="addPlace()" #addPlaceForm="ngForm">
         <h4 class="mb-3 text-primary">Add New Place</h4>
         <div class="mb-2">
           <label class="form-label">Name</label>
@@ -78,7 +78,7 @@
   <div *ngIf="showEditPlaceModal" class="modal-backdrop-custom">
     <div class="modal-dialog-custom">
       <button class="btn-close float-end close-btn" (click)="closeEditPlaceModal()"></button>
-      <form class="p-4" (ngSubmit)="saveEditPlace()" #editPlaceForm="ngForm" style="background: #fff; border-radius: 1.5rem; min-width: 320px; max-width: 400px; margin: 0 auto;">
+      <form class="enhanced-form" (ngSubmit)="saveEditPlace()" #editPlaceForm="ngForm">
         <h4 class="mb-3 text-primary">Edit Place</h4>
         <div class="mb-2">
           <label class="form-label">Name</label>
@@ -111,7 +111,7 @@
   <!-- Delete Confirm Modal -->
   <div *ngIf="showDeleteConfirmModal" class="modal-backdrop-custom">
     <div class="modal-dialog-custom">
-      <div class="p-4" style="background: #fff; border-radius: 1.5rem; min-width: 320px; max-width: 400px; margin: 0 auto; text-align: center;">
+      <div class="delete-modal">
         <h5 class="mb-3 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Confirm Delete</h5>
         <p>Are you sure you want to delete this place?</p>
         <div class="d-flex justify-content-center gap-3 mt-4">

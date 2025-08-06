@@ -313,6 +313,17 @@ export class UserList implements OnInit, AfterViewInit {
   }
 
   changeUserStatus(userId: string, newStatus: 'ACTIVE' | 'INACTIVE'): void {
+    // Prevent user from changing their own status
+    if (this.currentUser && this.currentUser.id === userId) {
+      console.warn('Cannot change your own status');
+      this.snackBar.open('You cannot change your own status!', 'Close', {
+        duration: 3000,
+        panelClass: ['error-snackbar'],
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      return;
+    }
     this.userService.updateUser(userId, { status: newStatus }).subscribe({
       next: () => {
         console.log(`User status updated successfully: ${userId} to ${newStatus}`);

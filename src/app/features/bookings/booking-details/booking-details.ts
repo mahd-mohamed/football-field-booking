@@ -11,6 +11,8 @@ import { BookingService, IBooking } from '../../../core/services/booking.service
 import { AuthService } from '../../../core/services/auth.service';
 import { TeamService } from '../../../core/services/team.service';
 import { BookingStatus } from '../../../core/services/match-participant.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
+import { ConfirmationDialogComponent, ConfirmationDialogData } from '../../../shared/confirmation-dialog/confirmation-dialog';
 
 @Component({
   selector: 'app-booking-details',
@@ -22,7 +24,8 @@ import { BookingStatus } from '../../../core/services/match-participant.service'
     MatIconModule,
     MatChipsModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    ConfirmationDialogComponent
   ],
   templateUrl: './booking-details.html',
   styleUrls: ['./booking-details.css']
@@ -35,13 +38,22 @@ export class BookingDetailsComponent implements OnInit {
   errorMessage: string | null = null;
   isLoading: boolean = false;
   isOrganizer: boolean = false;
+  
+  // Confirmation dialog properties
+  showConfirmationDialog: boolean = false;
+  confirmationDialogData: ConfirmationDialogData = {
+    title: '',
+    message: '',
+    type: 'warning'
+  };
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private bookingService: BookingService,
     private authService: AuthService,
-    private teamService: TeamService
+    private teamService: TeamService,
+    private errorHandler: ErrorHandlerService
   ) {}
 
   ngOnInit(): void {
@@ -143,20 +155,48 @@ export class BookingDetailsComponent implements OnInit {
   cancelBooking(): void {
     if (!this.booking) return;
 
-    if (confirm(`Are you sure you want to cancel this booking for ${this.booking.placeName}?`)) {
-      this.bookingService.cancelBooking(this.booking.id).subscribe({
-        next: () => {
-          this.successMessage = 'Booking cancelled successfully!';
-          this.loadBookingDetails(); // Reload booking details
-          // Success message will be cleared by user interaction or page navigation
-        },
-        error: (error) => {
-          console.error('Error cancelling booking:', error);
-          this.errorMessage = 'Failed to cancel booking. Please try again.';
-          // Error message will be cleared by user interaction or page navigation
-        }
-      });
-    }
+    this.confirmationDialogData = {
+      title: 'Cancel Booking',
+      message: `Are you sure you want to cancel this booking for ${this.booking.placeName}? This action cannot be undone.`,
+      confirmText: 'Cancel Booking',
+      cancelText: 'Keep Booking',
+      type: 'danger'
+    };
+    this.showConfirmationDialog = true;
+  }
+
+  private executeCancelBooking(): void {
+    if (!this.booking) return;
+
+    this.bookingService.cancelBooking(this.booking.id).subscribe({
+      next: () => {
+        // Show success snack bar notification
+        this.errorHandler.showSuccessNotification('Booking cancelled successfully!');
+        
+        this.successMessage = 'Booking cancelled successfully!';
+        this.loadBookingDetails(); // Reload booking details
+        this.closeConfirmationDialog();
+        // Success message will be cleared by user interaction or page navigation
+      },
+      error: (error) => {
+        console.error('Error cancelling booking:', error);
+        this.errorMessage = 'Failed to cancel booking. Please try again.';
+        this.closeConfirmationDialog();
+        // Error message will be cleared by user interaction or page navigation
+      }
+    });
+  }
+
+  closeConfirmationDialog(): void {
+    this.showConfirmationDialog = false;
+  }
+
+  onConfirmationConfirmed(): void {
+    this.executeCancelBooking();
+  }
+
+  onConfirmationCancelled(): void {
+    this.closeConfirmationDialog();
   }
 
   get isCancelableByTime(): boolean {

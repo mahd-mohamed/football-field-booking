@@ -26,20 +26,28 @@ export class UnifiedDashboardComponent implements OnInit {
     this.loadUserTeams();
   }
 
-  private loadUserTeams(): void {
-    if (this.currentUser) {
-      // Load teams created by the current user
-      this.teamService.getTeamsByCreator().subscribe({
-        next: (teams) => {
-          this.userTeams = teams;
-          this.checkIfUserIsOrganizer();
-        },
-        error: (error) => {
-          console.error('Error loading user teams:', error);
+private loadUserTeams(): void {
+  const currentUser = this.authService.getCurrentUser();
+  if (currentUser) {
+    this.teamService.getTeamsByCreator().subscribe({
+      next: (response: any) => {
+        // If response is an array, assign directly; if it's an object with 'content', use that; otherwise, assign empty array
+        if (Array.isArray(response)) {
+          this.userTeams = response;
+        } else if (response && Array.isArray(response.content)) {
+          this.userTeams = response.content;
+        } else {
+          this.userTeams = [];
         }
-      });
-    }
+        this.checkIfUserIsOrganizer();
+      },
+      error: (error) => {
+        console.error('Error loading user teams:', error);
+        this.userTeams = [];
+      }
+    });
   }
+}
 
   private checkIfUserIsOrganizer(): void {
     if (!this.currentUser) return;

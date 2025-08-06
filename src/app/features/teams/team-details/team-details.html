@@ -181,4 +181,12 @@
   <ng-template #loadingOrNotFound>
     <div class="loading-state">Loading team details or Team not found...</div>
   </ng-template>
+
+  <!-- Confirmation Dialog -->
+  <app-confirmation-dialog 
+    *ngIf="showConfirmationDialog"
+    [data]="confirmationDialogData"
+    (confirmed)="onConfirmationConfirmed()"
+    (cancelled)="onConfirmationCancelled()">
+  </app-confirmation-dialog>
 </div>

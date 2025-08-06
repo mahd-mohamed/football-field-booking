@@ -36,22 +36,29 @@ export class OverviewComponent implements OnInit {
     this.loadUserTeams();
   }
 
-  private loadUserTeams(): void {
-    const currentUser = this.auth.getCurrentUser();
-    if (currentUser) {
-      // Load teams created by the current user
-      this.teamService.getTeamsByCreator().subscribe({
-        next: (teams) => {
-          this.userTeams = teams;
-          // Check if user is organizer in any team
-          this.checkIfUserIsOrganizer(currentUser.id);
-        },
-        error: (error) => {
-          console.error('Error loading user teams:', error);
+private loadUserTeams(): void {
+  const currentUser = this.auth.getCurrentUser();
+  if (currentUser) {
+    this.teamService.getTeamsByCreator().subscribe({
+      next: (response: any) => {
+        // If response is an array, assign directly; if it's an object with 'content', use that; otherwise, assign empty array
+        if (Array.isArray(response)) {
+          this.userTeams = response;
+        } else if (response && Array.isArray(response.content)) {
+          this.userTeams = response.content;
+        } else {
+          this.userTeams = [];
         }
-      });
-    }
+        this.checkIfUserIsOrganizer(currentUser.id);
+      },
+      error: (error) => {
+        console.error('Error loading user teams:', error);
+        this.userTeams = [];
+      }
+    });
   }
+}
+
 
   private checkIfUserIsOrganizer(userId: string): void {
     // Check if user is organizer in any team
