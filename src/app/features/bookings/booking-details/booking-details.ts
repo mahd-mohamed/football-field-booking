@@ -6,8 +6,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { BookingService, IBooking, BookingStatus } from '../../../core/services/booking';
-import { Auth } from '../../../core/services/auth';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { BookingService, IBooking } from '../../../core/services/booking.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { TeamService } from '../../../core/services/team.service';
+import { BookingStatus } from '../../../core/services/match-participant.service';
 
 @Component({
   selector: 'app-booking-details',
@@ -18,7 +21,8 @@ import { Auth } from '../../../core/services/auth';
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatTooltipModule
   ],
   templateUrl: './booking-details.html',
   styleUrls: ['./booking-details.css']
@@ -26,16 +30,18 @@ import { Auth } from '../../../core/services/auth';
 export class BookingDetailsComponent implements OnInit {
   booking: IBooking | null = null;
   currentUser: any;
-  
+
   successMessage: string | null = null;
   errorMessage: string | null = null;
   isLoading: boolean = false;
+  isOrganizer: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private bookingService: BookingService,
-    private authService: Auth
+    private authService: AuthService,
+    private teamService: TeamService
   ) {}
 
   ngOnInit(): void {
@@ -51,10 +57,23 @@ export class BookingDetailsComponent implements OnInit {
     }
 
     this.isLoading = true;
-    this.bookingService.getBookingById(bookingId).subscribe({
+    this.bookingService.getBookingDetailsById(bookingId).subscribe({
       next: (booking) => {
         if (booking) {
           this.booking = booking;
+
+          // Check if current user is an organizer in this team
+          this.teamService.getTeamMembers(booking.teamId).subscribe({
+            next: (members) => {
+              this.isOrganizer = members.some(
+                m => m.userId === this.currentUser.id && m.role === 'ORGANIZER'
+              );
+            },
+            error: () => {
+              this.isOrganizer = false;
+            }
+          });
+
         } else {
           this.errorMessage = 'Booking not found.';
         }
@@ -68,13 +87,14 @@ export class BookingDetailsComponent implements OnInit {
     });
   }
 
+
   getStatusColor(status: BookingStatus): string {
     switch (status) {
       case 'CONFIRMED':
         return 'success';
       case 'PENDING_PAYMENT':
         return 'warning';
-      case 'PENDING':
+      case 'PENDING_PLAYERS':
         return 'info';
       case 'CANCELLED':
         return 'error';
@@ -89,8 +109,8 @@ export class BookingDetailsComponent implements OnInit {
         return 'Confirmed';
       case 'PENDING_PAYMENT':
         return 'Pending Payment';
-      case 'PENDING':
-        return 'Pending';
+      case 'PENDING_PLAYERS':
+        return 'Pending Players';
       case 'CANCELLED':
         return 'Cancelled';
       default:
@@ -123,30 +143,43 @@ export class BookingDetailsComponent implements OnInit {
   cancelBooking(): void {
     if (!this.booking) return;
 
-    if (confirm(`Are you sure you want to cancel this booking for ${this.booking.place_name}?`)) {
+    if (confirm(`Are you sure you want to cancel this booking for ${this.booking.placeName}?`)) {
       this.bookingService.cancelBooking(this.booking.id).subscribe({
         next: () => {
           this.successMessage = 'Booking cancelled successfully!';
           this.loadBookingDetails(); // Reload booking details
-          setTimeout(() => {
-            this.successMessage = null;
-          }, 3000);
+          // Success message will be cleared by user interaction or page navigation
         },
         error: (error) => {
           console.error('Error cancelling booking:', error);
           this.errorMessage = 'Failed to cancel booking. Please try again.';
-          setTimeout(() => {
-            this.errorMessage = null;
-          }, 3000);
+          // Error message will be cleared by user interaction or page navigation
         }
       });
     }
   }
 
-  canCancelBooking(): boolean {
-    if (!this.booking || !this.currentUser) return false;
-    return this.booking.user_id === this.currentUser.id && this.booking.status !== 'CANCELLED';
-  }
+  get isCancelableByTime(): boolean {
+  if (!this.booking) return false;
+
+  const now = new Date().getTime();
+  const matchStart = new Date(this.booking.startTime).getTime();
+  const threeHoursInMs = 3 * 60 * 60 * 1000;
+
+  return matchStart - now > threeHoursInMs;
+}
+
+canCancelBooking(): boolean {
+  if (!this.booking || !this.currentUser) return false;
+
+  return (
+    this.isOrganizer &&
+    this.booking.status !== 'CANCELLED' &&
+    this.isCancelableByTime
+  );
+}
+
+
 
   goBack(): void {
     // Check if user is admin and navigate accordingly
@@ -159,11 +192,11 @@ export class BookingDetailsComponent implements OnInit {
 
   isUpcoming(): boolean {
     if (!this.booking) return false;
-    return new Date(this.booking.start_time) > new Date();
+    return new Date(this.booking.startTime) > new Date();
   }
 
   isPast(): boolean {
     if (!this.booking) return false;
-    return new Date(this.booking.start_time) < new Date();
+    return new Date(this.booking.startTime) < new Date();
   }
 }

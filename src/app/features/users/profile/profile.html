@@ -53,8 +53,8 @@
                 <label class="info-label">Role</label>
                 <div class="info-value">
                   <i class="fa fa-user-shield me-2" *ngIf="effectiveRole === 'ADMIN'"></i>
-                  <i class="fa fa-users me-2" *ngIf="effectiveRole === 'ORGANIZER'"></i>
-                  <i class="fa fa-user me-2" *ngIf="effectiveRole === 'PLAYER'"></i>
+                  <!-- <i class="fa fa-users me-2" *ngIf="effectiveRole === 'ORGANIZER'"></i> -->
+                  <i class="fa fa-user me-2" *ngIf="effectiveRole === 'USER'"></i>
                   <span class="badge" [ngClass]="'bg-' + getRoleColor(effectiveRole)">
                     {{ getRoleDisplayName(effectiveRole) }}
                   </span>

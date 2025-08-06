@@ -2,29 +2,14 @@
   <div class="notification-header">
     <h2 class="notification-title">
       <mat-icon class="notification-icon">notifications</mat-icon>
-      Notifications
+      Pending Notifications
     </h2>
-    <div class="notification-actions">
-      <button 
-        mat-raised-button 
-        color="primary" 
-        (click)="markAllAsRead()"
-        [disabled]="unreadCount === 0"
-        class="mark-all-read-btn">
-        <mat-icon>done_all</mat-icon>
-        Mark All as Read
-      </button>
-    </div>
   </div>
 
   <div class="notification-stats">
     <div class="stat-item">
-      <span class="stat-label">Total:</span>
+      <span class="stat-label">Pending:</span>
       <span class="stat-value">{{ notifications.length }}</span>
-    </div>
-    <div class="stat-item">
-      <span class="stat-label">Unread:</span>
-      <span class="stat-value unread-count">{{ unreadCount }}</span>
     </div>
   </div>
 
@@ -35,55 +20,64 @@
 
   <div *ngIf="!loading && notifications.length === 0" class="no-notifications">
     <mat-icon class="empty-icon">notifications_off</mat-icon>
-    <h3>No notifications yet</h3>
-    <p>You'll see notifications here when you receive invitations, requests, or updates.</p>
+    <h3>No pending notifications</h3>
+    <p>You don't have any pending notifications that require your attention.</p>
   </div>
 
   <div *ngIf="!loading && notifications.length > 0" class="notifications-list">
-    <mat-card 
-      *ngFor="let notification of notifications" 
-      class="notification-card"
-      [class.unread]="notification.status === 'UNREAD'"
-      (click)="markAsRead(notification.id)">
-      
+    <mat-card
+      *ngFor="let notification of notifications"
+      class="notification-card">
+
       <mat-card-header class="notification-header-content">
         <div class="notification-icon-container">
-          <mat-icon 
-            [class]="getNotificationIconClass(notification.type)"
+          <mat-icon
+            [class]="getNotificationIconClass(notification.requestType)"
             class="notification-type-icon">
-            {{ getNotificationIcon(notification.type) }}
+            {{ getNotificationIcon(notification.requestType) }}
           </mat-icon>
         </div>
-        
+
         <div class="notification-content">
           <mat-card-title class="notification-title-text">
-            {{ notification.title }}
-            <span *ngIf="notification.status === 'UNREAD'" class="unread-indicator"></span>
+            {{ notification.requestMessage }}
           </mat-card-title>
-          <mat-card-subtitle class="notification-message">
-            {{ notification.message }}
-          </mat-card-subtitle>
+
           <div class="notification-meta">
-            <span class="notification-time">{{ getTimeAgo(notification.createdAt) }}</span>
-            <span class="notification-type-badge">{{ getNotificationTypeLabel(notification.type) }}</span>
+            <span class="notification-time">{{ getTimeAgo(notification.sendTime) }}</span>
+            <span class="notification-type-badge">{{ getNotificationTypeLabel(notification.requestType) }}</span>
           </div>
         </div>
       </mat-card-header>
 
       <mat-card-actions class="notification-actions-content">
-        <button 
-          mat-button 
-          color="primary" 
+        <!-- Approve/Reject buttons for all pending notifications -->
+        <div *ngIf="notification.status === 'PENDING'" class="request-actions">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="approveRequest(notification); $event.stopPropagation()"
+            class="approve-btn">
+            <mat-icon>check</mat-icon>
+            Approve
+          </button>
+          <button 
+            mat-raised-button 
+            color="warn" 
+            (click)="rejectRequest(notification); $event.stopPropagation()"
+            class="reject-btn">
+            <mat-icon>close</mat-icon>
+            Reject
+          </button>
+        </div>
+
+        <!-- Default action button for non-pending notifications (if any) -->
+        <button
+          mat-button
+          color="primary"
           (click)="handleNotificationAction(notification); $event.stopPropagation()"
-          *ngIf="hasAction(notification)">
+          *ngIf="hasAction(notification) && notification.status !== 'PENDING'">
           {{ getActionLabel(notification) }}
-        </button>
-        <button 
-          mat-icon-button 
-          color="warn" 
-          (click)="deleteNotification(notification.id); $event.stopPropagation()"
-          class="delete-btn">
-          <mat-icon>delete</mat-icon>
         </button>
       </mat-card-actions>
     </mat-card>
@@ -94,7 +88,7 @@
     <mat-icon>check_circle</mat-icon>
     {{ successMessage }}
   </div>
-  
+
   <div *ngIf="errorMessage" class="error-message" role="alert">
     <mat-icon>error</mat-icon>
     {{ errorMessage }}

@@ -209,17 +209,22 @@
   font-weight: 500;
 }
 
-/* Card Actions */
 .booking-card mat-card-actions {
-  padding: 16px 20px;
-  background-color: rgba(248, 249, 250, 0.8);
-  border-top: 1px solid rgba(233, 236, 239, 0.5);
-  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  /* Evenly distributes space */
+  align-items: center;
+  gap: 10px;
+  /* Adds a little space between buttons */
+  padding: 8px 16px;
 }
 
 .booking-card mat-card-actions button {
-  margin-left: 8px;
-  font-size: 0.875rem;
+  flex: 1;
+  /* Makes buttons share equal width */
+  justify-content: center;
+  /* Centers icon and text */
+  text-align: center;
 }
 
 .booking-card mat-card-actions button[color="primary"] {
@@ -340,3 +345,35 @@ mat-tab-group ::ng-deep .mat-mdc-tab-label.mat-mdc-tab-label-active {
 mat-tab-group ::ng-deep .mat-mdc-ink-bar {
   background-color: #007bff;
 } 
+
+.section-title {
+  margin: 20px 0 10px;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.old-bookings-title {
+  margin-top: 30px;
+  color: #555;
+}
+
+.old-booking-card {
+  background-color: #f8f9fa;
+  opacity: 0.9;
+}
+
+.old-bookings-grid {
+  margin-bottom: 20px;
+}
+
+.no-bookings mat-icon {
+  font-size: 40px;
+  color: #999;
+}
+
+.bookings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+}

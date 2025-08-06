@@ -5,11 +5,6 @@
       Team Requests
     </h2>
     <p class="requests-subtitle">Manage team invitations and join requests</p>
-    <!-- Test button for debugging -->
-    <button mat-raised-button color="accent" (click)="addTestJoinRequest()" class="test-button">
-      <mat-icon>bug_report</mat-icon>
-      Add Test Request
-    </button>
   </div>
 
   <!-- Loading State -->
@@ -19,62 +14,12 @@
   </div>
 
   <!-- No Requests State -->
-  <div *ngIf="!loading && pendingInvitations.length === 0 && joinRequests.length === 0" class="no-requests">
+  <div *ngIf="!loading && requestsCount === 0 && joinRequests.length === 0" class="no-requests">
     <mat-icon class="empty-icon">inbox</mat-icon>
     <h3>No pending requests</h3>
     <p>You don't have any pending team invitations or join requests at the moment.</p>
   </div>
 
-  <!-- Pending Invitations Section -->
-  <div *ngIf="!loading && pendingInvitations.length > 0" class="requests-section">
-    <h3 class="section-title">
-      <mat-icon class="section-icon">mail</mat-icon>
-      Pending Invitations ({{ pendingInvitations.length }})
-    </h3>
-    
-    <div class="requests-grid">
-      <mat-card *ngFor="let invitation of pendingInvitations" class="request-card invitation-card">
-        <mat-card-header>
-          <div class="request-header-content">
-            <div class="team-info">
-              <mat-card-title class="team-name">{{ invitation.teamName }}</mat-card-title>
-              <mat-card-subtitle class="invited-by">Invited by: {{ invitation.invitedBy }}</mat-card-subtitle>
-            </div>
-            <div class="request-status pending">
-              <mat-icon>schedule</mat-icon>
-              <span>Pending</span>
-            </div>
-          </div>
-        </mat-card-header>
-        
-        <mat-card-content>
-          <p class="request-message">You've been invited to join this team as a {{ invitation.role.toLowerCase() }}.</p>
-          <div class="request-meta">
-            <span class="request-date">{{ getTimeAgo(invitation.createdAt) }}</span>
-          </div>
-        </mat-card-content>
-        
-        <mat-card-actions class="request-actions">
-          <button 
-            mat-raised-button 
-            color="primary" 
-            (click)="respondToInvitation(invitation.id, 'APPROVED')"
-            class="approve-btn">
-            <mat-icon>check</mat-icon>
-            Accept
-          </button>
-          <button 
-            mat-raised-button 
-            color="warn" 
-            (click)="respondToInvitation(invitation.id, 'REJECTED')"
-            class="reject-btn">
-            <mat-icon>close</mat-icon>
-            Decline
-          </button>
-        </mat-card-actions>
-      </mat-card>
-    </div>
-  </div>
 
   <!-- Join Requests Section (for Organizers) -->
   <div *ngIf="!loading && joinRequests.length > 0" class="requests-section">
@@ -88,8 +33,7 @@
         <mat-card-header>
           <div class="request-header-content">
             <div class="user-info">
-              <mat-card-title class="user-name">{{ request.username }}</mat-card-title>
-              <mat-card-subtitle class="user-email">{{ request.email }}</mat-card-subtitle>
+              <mat-card-title class="user-name">{{ request.requestMessage }}</mat-card-title>
             </div>
             <div class="request-status pending">
               <mat-icon>schedule</mat-icon>
@@ -99,9 +43,9 @@
         </mat-card-header>
         
         <mat-card-content>
-          <p class="request-message">{{ request.username }} wants to join your team "{{ request.teamName }}".</p>
+          <p class="request-message">{{ request.senderEmail }}".</p>
           <div class="request-meta">
-            <span class="request-date">{{ getTimeAgo(request.createdAt) }}</span>
+            <span class="request-date">{{ getTimeAgo(request.sendTime) }}</span>
           </div>
         </mat-card-content>
         
@@ -109,7 +53,7 @@
           <button 
             mat-raised-button 
             color="primary" 
-            (click)="respondToJoinRequest(request.id, 'APPROVED')"
+            (click)="respondToJoinRequest(request.jokerId, 'APPROVED')"
             class="approve-btn">
             <mat-icon>check</mat-icon>
             Approve
@@ -117,7 +61,7 @@
           <button 
             mat-raised-button 
             color="warn" 
-            (click)="respondToJoinRequest(request.id, 'REJECTED')"
+            (click)="respondToJoinRequest(request.jokerId, 'REJECTED')"
             class="reject-btn">
             <mat-icon>close</mat-icon>
             Reject

@@ -19,8 +19,43 @@
   color: #333;
 }
 
+.custom-header-wrapper {
+  padding-top: 24px;
+  /* Ensures extra top spacing */
+}
+
+.centered-header {
+  justify-content: center;
+  text-align: center;
+  padding: 24px 0 !important;
+  /* Force padding to override material defaults */
+  background-color: #f7f9fc;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.centered-header .mat-card-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  letter-spacing: 0.6px;
+  padding: 8px 16px;
+}
+
 .back-button {
   color: #666;
+}
+
+.cancel-warning {
+  color: #d32f2f;
+  font-size: 14px;
+  margin: 8px 16px 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cancel-section {
+  padding: 8px 16px;
 }
 
 .back-button:hover {

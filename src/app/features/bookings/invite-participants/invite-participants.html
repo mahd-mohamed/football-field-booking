@@ -1,0 +1,114 @@
+<div class="match-participants-container">
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="combinedData$ | async as data; else loadingOrError">
+    <div *ngIf="data.match" class="match-info-section">
+
+      <!-- Organizer Info Card -->
+      <div class="organizer-info">
+        <div>
+          <h2 class="match-title">
+            <mat-icon class="match-icon">sports_soccer</mat-icon>
+            <span>{{ data.match.teamName || 'Match Details' }}</span>
+          </h2>
+          <p class="subtext">
+            <mat-icon>person</mat-icon>
+            Organized by: <strong>{{ data.match.userName || 'You' }}</strong>
+          </p>
+          <p class="subtext">
+            <mat-icon>location_on</mat-icon>
+            Location: <strong>{{ data.match.placeName }}</strong>
+          </p>
+          <p class="subtext">
+            <mat-icon>event</mat-icon>
+            Date: <strong>{{ data.match.startTime | date:'mediumDate' }}</strong>
+          </p>
+          <p class="subtext">
+            <mat-icon>schedule</mat-icon>
+            Time: <strong>{{ data.match.startTime | date:'shortTime' }}</strong> -
+            <strong>{{ data.match.endTime | date:'shortTime' }}</strong>
+          </p>
+          <p class="subtext status">
+            <mat-icon>info</mat-icon>
+            Status: <span class="status-badge">{{ data.match.status }}</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Join Match Button -->
+      <div class="join-match-section"
+        *ngIf="data.match && !isOrganizerAlreadyParticipant(data.match.userId, data.participants)">
+        <button class="join-match-btn" (click)="joinMatchAsOrganizer()">
+          <mat-icon>check_circle</mat-icon> Join Match as Organizer
+        </button>
+      </div>
+
+      <!-- Invite Capacity Info -->
+      <div class="invite-capacity" *ngIf="data.match && data.participants">
+        <mat-icon>group_add</mat-icon>
+        <span>
+          {{ getCurrentAcceptedCount(data.participants) }}/{{ getMaxCapacity(data.match.placeType || '') }}
+          invitations sent
+        </span>
+      </div>
+
+
+      <!-- Players Table -->
+      <h3>Team Players</h3>
+      <div class="players-table-wrapper">
+        <table class="players-table">
+          <thead>
+            <tr>
+              <th><mat-icon>person</mat-icon> Username</th>
+              <th><mat-icon>email</mat-icon> Email</th>
+              <th><mat-icon>assignment_ind</mat-icon> Role</th>
+              <th><mat-icon>person_add</mat-icon> Invite</th>
+              <th><mat-icon>info</mat-icon> Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let player of data.players"
+              [ngClass]="{'organizer-row': isOrganizer(player.userId, data.match.userId)}">
+              <td>{{ player.username }}</td>
+              <td>{{ player.email }}</td>
+              <td>{{ player.role }}</td>
+              <td>
+                <button *ngIf="!isOrganizer(player.userId, data.match.userId)" mat-button matTooltip="Send match invitation"
+                  (click)="invitePlayer(player.email, data.match, data.participants)"
+                  [disabled]="isPlayerInvited(player.userId, data.participants)"
+                  [ngClass]="{'invited-button': isPlayerInvited(player.userId, data.participants)}">
+                  {{ isPlayerInvited(player.userId, data.participants) ? 'Invited' : 'Invite' }}
+                </button>
+
+                <span *ngIf="isOrganizer(player.userId, data.match.userId)" class="organizer-label">
+                  Organizer
+                </span>
+              </td>
+              <td>{{ getPlayerInvitationStatus(player.userId, data.participants) }}</td>
+            </tr>
+            <tr *ngIf="data.players.length === 0">
+              <td colspan="5" class="no-players">No players found for this team.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- No match found -->
+    <div *ngIf="!data.match && !errorMessage" class="no-data">
+      No match data available. Please check the match ID.
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <ng-template #loadingOrError>
+    <div class="loading-state" *ngIf="!errorMessage">
+      <mat-spinner diameter="40"></mat-spinner>
+      Loading match and player data...
+    </div>
+  </ng-template>
+</div>

@@ -1,24 +1,28 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule, NgIf, NgFor, DatePipe } from '@angular/common'; 
+import { CommonModule, NgIf, NgFor, DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 
-import { ITeam, Team, ITeamMember } from '../../../core/services/team';
-import { User, Auth } from '../../../core/services/auth';
-import { Notification } from '../../../core/services/notification';
+import { ITeam, ITeamMember, TeamMemberRole, TeamMemberStatus, TeamService } from '../../../core/services/team.service';
+import { TeamMemberService, ITeamMemberUpdateRequest } from '../../../core/services/team-member.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
+import { ConfirmationDialogComponent, ConfirmationDialogData } from '../../../shared/confirmation-dialog/confirmation-dialog';
 
+import { IUser } from '../../../core/models/iuser.model';
 @Component({
   selector: 'app-team-details',
-  imports: [CommonModule, ReactiveFormsModule, DatePipe, MatIconModule], 
-  templateUrl: './team-details.html', 
-  styleUrls: ['./team-details.css'] 
+  imports: [CommonModule, ReactiveFormsModule, DatePipe, MatIconModule, ConfirmationDialogComponent],
+  templateUrl: './team-details.html',
+  styleUrls: ['./team-details.css']
 })
-export class TeamDetails implements OnInit, OnDestroy { 
+export class TeamDetails implements OnInit, OnDestroy {
   team: ITeam | undefined;
   teamMembers: ITeamMember[] = [];
-  usersInTeam: User[] = [];
+  usersInTeam: IUser[] = [];
   errorMessage: string | null = null;
   successMessage: string | null = null;
   isOrganizer: boolean = false;
@@ -26,17 +30,29 @@ export class TeamDetails implements OnInit, OnDestroy {
   hasRequestedJoin: boolean = false;
   isEditing: boolean = false;
   editTeamForm!: FormGroup;
+  
+  // Confirmation dialog properties
+  showConfirmationDialog: boolean = false;
+  confirmationDialogData: ConfirmationDialogData = {
+    title: '',
+    message: '',
+    type: 'warning'
+  };
+  pendingAction: 'remove' | 'makeOrganizer' | null = null;
+  pendingMember: ITeamMember | null = null;
 
   private destroy$ = new Subject<void>();
-  private mockMatchIdToLink: string = 'match_for_dynamic_team';
+  // private mockMatchIdToLink: string = 'match_for_dynamic_team';
   teamId!: string;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private teamService: Team,
-    private authService: Auth,
-    private notificationService: Notification,
+    private teamService: TeamService,
+    private teamMemberService: TeamMemberService,
+    private authService: AuthService,
+    private notificationService: NotificationService,
+    private errorHandler: ErrorHandlerService,
     private fb: FormBuilder
   ) { }
 
@@ -80,9 +96,10 @@ export class TeamDetails implements OnInit, OnDestroy {
             name: this.team.name,
             description: this.team.description
           });
-          
+
           // Check if current user is the team organizer (creator)
           this.checkIfUserIsTeamOrganizer(team);
+          console.log('TeamDetailsComponent: Checking if current user is team organizer:', this.isOrganizer);
         } else {
           this.errorMessage = 'Team not found.';
           console.warn(`TeamDetailsComponent: Team with ID "${id}" not found. Redirecting to team list.`);
@@ -98,29 +115,29 @@ export class TeamDetails implements OnInit, OnDestroy {
   }
 
   checkIfUserIsTeamOrganizer(team: ITeam): void {
+    // call is organizer service
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) return;
 
-    // Check if current user is the team creator
-    this.isOrganizer = currentUser.id === team.createdBy;
-    console.log('TeamDetailsComponent: Current user is team organizer?', this.isOrganizer);
-    console.log('TeamDetailsComponent: Current user ID:', currentUser.id);
-    console.log('TeamDetailsComponent: Team creator ID:', team.createdBy);
+    this.teamService.isUserTeamOrganizer(team.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (isOrganizer) => {
+        this.isOrganizer = isOrganizer;
+        console.log('TeamDetailsComponent: Current user is team organizer?', this.isOrganizer);
+      },
+      error: (err) => {
+        console.error('TeamDetailsComponent: Error checking if user is team organizer:', err);
+      }
+    });
   }
 
   loadTeamMembers(teamId: string): void {
     console.log(`TeamDetailsComponent: Attempting to load team members for team ID: "${teamId}"`);
     this.teamService.getTeamMembers(teamId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (members) => {
-        this.teamMembers = members;
-        console.log('TeamDetailsComponent: Team members loaded:', this.teamMembers);
-        // For now, we'll use mock user data since getPlayersByTeamId doesn't exist
-        this.usersInTeam = [
-          { id: 1, username: 'admin', email: 'admin@admin.com', password: 'admin1', role: 'ADMIN', status: 'ACTIVE' },
-          { id: 2, username: 'organizer', email: 'org@org.com', password: 'organizer', role: 'ORGANIZER', status: 'ACTIVE' },
-          { id: 3, username: 'player', email: 'player@player.com', password: 'player', role: 'USER', status: 'ACTIVE' }
-        ];
-        console.log('TeamDetailsComponent: Mock user details for members loaded:', this.usersInTeam);
+        // Filter to show only approved team members
+        this.teamMembers = members.filter(member => member.status === 'APPROVED');
+        console.log('TeamDetailsComponent: Team members loaded (approved only):', this.teamMembers);
+        console.log('TeamDetailsComponent: Total members from API:', members.length, 'Approved members:', this.teamMembers.length);
       },
       error: (err: any) => {
         console.error('TeamDetailsComponent: Error loading team members:', err);
@@ -151,49 +168,54 @@ export class TeamDetails implements OnInit, OnDestroy {
   }
 
   requestToJoinTeam(): void {
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser || !this.team) return;
+    if (!this.team) return;
+
+    // Clear any previous messages
+    this.errorMessage = null;
+    this.successMessage = null;
 
     console.log('Sending join request for team:', this.team.id);
-    console.log('Current user:', currentUser);
 
-    this.teamService.addTeamMember(
-      this.team.id,
-      currentUser.id,
-      currentUser.username,
-      currentUser.email,
-      'MEMBER',
-      'PENDING'
-    ).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (member) => {
-        console.log('Join request created successfully:', member);
+    this.teamMemberService.requestToJoinTeam(this.team.id).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        console.log('Join request successful:', response);
         this.hasRequestedJoin = true;
-        this.teamMembers.push(member);
+        
+        // Show success snack bar notification
+        this.errorHandler.showSuccessNotification('Your request to join the team has been sent successfully!');
+        
+        this.successMessage = 'Your request to join the team has been sent successfully!';
 
-        // Debug: Check if member was saved to localStorage
-        const membersString = localStorage.getItem('teamMembers');
-        const members = membersString ? JSON.parse(membersString) : [];
-        console.log('All team members after adding request:', members);
+        // Update the team members list to include the pending request
+        if (response) {
+          const newMember: ITeamMember = {
+            id: response.id,
+            teamId: response.teamId,
+            userId: response.userId,
+            username: this.authService.getCurrentUser()?.username || '',
+            email: this.authService.getCurrentUser()?.email || '',
+            role: response.role as TeamMemberRole,
+            status: response.status as TeamMemberStatus,
+            createdAt: response.createdAt,
+            respondedAt: response.respondedAt
+          };
+          this.teamMembers = [...this.teamMembers, newMember];
+        }
 
-        // Create notification for team organizer
-        this.notificationService.createTeamJoinRequestNotification(
-          this.team!.createdBy,
-          this.team!.id,
-          this.team!.name,
-          currentUser.username
-        ).subscribe();
-
-        this.successMessage = 'Join request sent successfully! The team organizer will review your request.';
-        setTimeout(() => this.successMessage = null, 5000);
+        // Success message will be cleared by user interaction or page navigation
       },
-      error: (err) => {
-        console.error('Failed to send join request:', err);
-        this.errorMessage = 'Failed to send join request. Please try again.';
+      error: (error) => {
+        console.error('Failed to send join request:', error);
+        this.errorMessage = error.message || 'Failed to send join request. Please try again.';
+
+        // Error message will be cleared by user interaction or page navigation
       }
     });
   }
 
-  getUserForTeamMember(userId: number): User | undefined {
+  getUserForTeamMember(userId: string): IUser | undefined {
     return this.usersInTeam.find(user => user.id === userId);
   }
 
@@ -209,19 +231,22 @@ export class TeamDetails implements OnInit, OnDestroy {
 
   saveTeamChanges(): void {
     if (this.editTeamForm.valid && this.team) {
-      const updatedTeam: ITeam = {
-        ...this.team,
+      const teamData = {
         name: this.editTeamForm.value.name,
         description: this.editTeamForm.value.description
       };
 
-      this.teamService.updateTeam(updatedTeam).pipe(takeUntil(this.destroy$)).subscribe({
-        next: (responseTeam) => {
+      this.teamService.updateTeam(this.team.id, teamData).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (responseTeam: ITeam) => {
           this.team = responseTeam;
+          
+          // Show success snack bar notification
+          this.errorHandler.showSuccessNotification('Team updated successfully!');
+          
           this.successMessage = 'Team updated successfully!';
           this.errorMessage = null;
           this.isEditing = false;
-          setTimeout(() => this.successMessage = null, 3000);
+          // Success message will be cleared by user interaction or page navigation
         },
         error: (err: any) => {
           console.error('Failed to update team', err);
@@ -236,15 +261,135 @@ export class TeamDetails implements OnInit, OnDestroy {
   }
 
   removeTeamMember(teamMemberId: string): void {
-    if (confirm('Are you sure you want to remove this member from the team?')) {
-      console.log(`TeamDetailsComponent: Initiating removal of team member ${teamMemberId}`);
-      // For now, we'll just remove from the local array since removeTeamMember doesn't exist
-      this.teamMembers = this.teamMembers.filter(member => member.id !== teamMemberId);
-      this.successMessage = 'Member removed successfully!';
-      this.errorMessage = null;
-      setTimeout(() => this.successMessage = null, 3000);
-      console.log(`TeamDetailsComponent: Team member ${teamMemberId} removed from local array.`);
+    const member = this.teamMembers.find(m => m.id === teamMemberId);
+    if (!member) return;
+
+    this.pendingAction = 'remove';
+    this.pendingMember = member;
+    this.confirmationDialogData = {
+      title: 'Remove Team Member',
+      message: `Are you sure you want to remove ${member.username} from the team? This action cannot be undone.`,
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      type: 'danger'
+    };
+    this.showConfirmationDialog = true;
+  }
+
+  private executeRemoveMember(): void {
+    if (!this.pendingMember) return;
+
+    console.log(`TeamDetailsComponent: Initiating removal of team member ${this.pendingMember.id}`);
+
+    this.teamMemberService.removeTeamMember(this.pendingMember.id).subscribe({
+      next: () => {
+        // Only update the UI after successful backend removal
+        this.teamMembers = this.teamMembers.filter(member => member.id !== this.pendingMember!.id);
+        
+        // Show success snack bar notification
+        this.errorHandler.showSuccessNotification(`${this.pendingMember!.username} has been removed from the team.`);
+        
+        this.successMessage = 'Member removed successfully!';
+        this.errorMessage = null;
+        // Success message will be cleared by user interaction or page navigation
+        console.log(`TeamDetailsComponent: Team member ${this.pendingMember!.id} removed successfully.`);
+        this.closeConfirmationDialog();
+      },
+      error: (error) => {
+        console.error('Error removing team member:', error);
+        this.errorMessage = error.message || 'Failed to remove team member';
+        this.successMessage = null;
+        // Error message will be cleared by user interaction or page navigation
+        this.closeConfirmationDialog();
+      }
+    });
+  }
+
+  makeOrganizer(member: ITeamMember): void {
+    this.pendingAction = 'makeOrganizer';
+    this.pendingMember = member;
+    this.confirmationDialogData = {
+      title: 'Make Team Organizer',
+      message: `Are you sure you want to make ${member.username} an organizer of this team? They will have the same management privileges as you.`,
+      confirmText: 'Make Organizer',
+      cancelText: 'Cancel',
+      type: 'warning'
+    };
+    this.showConfirmationDialog = true;
+  }
+
+  private executeMakeOrganizer(): void {
+    if (!this.pendingMember) return;
+
+    console.log(`TeamDetailsComponent: Making ${this.pendingMember.username} an organizer`);
+
+    const updateRequest: ITeamMemberUpdateRequest = {
+      id: this.pendingMember.id,
+      role: 'ORGANIZER',
+      status: this.pendingMember.status
+    };
+
+    this.teamMemberService.updateTeamMember(updateRequest).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (updatedMember) => {
+        // Update the member in the local array
+        const memberIndex = this.teamMembers.findIndex(m => m.id === this.pendingMember!.id);
+        if (memberIndex !== -1) {
+          this.teamMembers[memberIndex] = updatedMember;
+        }
+        
+        // Show success snack bar notification
+        this.errorHandler.showSuccessNotification(`${this.pendingMember!.username} is now an organizer!`);
+        
+        this.successMessage = `${this.pendingMember!.username} is now an organizer!`;
+        this.errorMessage = null;
+        // Success message will be cleared by user interaction or page navigation
+        console.log(`TeamDetailsComponent: ${this.pendingMember!.username} promoted to organizer successfully.`);
+        //update the team details to reflect the change
+        this.loadTeamDetails(this.teamId);
+        this.loadTeamMembers(this.teamId);
+        this.checkUserTeamStatus(this.teamId);
+        this.closeConfirmationDialog();
+      },
+      error: (error) => {
+        console.error('Error promoting member to organizer:', error);
+        this.errorMessage = error.message || 'Failed to promote member to organizer';
+        this.successMessage = null;
+        // Error message will be cleared by user interaction or page navigation
+        this.closeConfirmationDialog();
+      }
+    });
+  }
+
+  closeConfirmationDialog(): void {
+    this.showConfirmationDialog = false;
+    this.pendingAction = null;
+    this.pendingMember = null;
+  }
+
+  onConfirmationConfirmed(): void {
+    switch (this.pendingAction) {
+      case 'remove':
+        this.executeRemoveMember();
+        break;
+      case 'makeOrganizer':
+        this.executeMakeOrganizer();
+        break;
     }
+  }
+
+  onConfirmationCancelled(): void {
+    this.closeConfirmationDialog();
+  }
+
+  // Helper method to check if a member can be removed
+  canRemoveMember(member: ITeamMember): boolean {
+    return this.isOrganizer && member.role !== 'ORGANIZER';
+  }
+
+  // Helper method to check if a member can be made organizer
+  canMakeOrganizer(member: ITeamMember): boolean {
+    // Only show "Make Organizer" button for approved members who are NOT already organizers
+    return this.isOrganizer && member.status === 'APPROVED' && member.role !== 'ORGANIZER';
   }
 
   goToInvitePlayer(teamId: string): void {

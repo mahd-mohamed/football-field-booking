@@ -82,9 +82,36 @@
 }
 
 .no-notifications {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
   text-align: center;
   padding: 60px 20px;
   color: #666;
+}
+
+.no-notifications .empty-icon {
+  font-size: 48px;  /* Big enough to stand out */
+  width: 48px;
+  height: 48px;
+  line-height: 1;
+  margin-bottom: 1rem;
+  color: var(--primary-teal); /* Or any accent color you like */
+}
+
+.no-notifications h3 {
+  margin: 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.no-notifications p {
+  margin: 0;
+  font-size: 1rem;
+  color: #888; /* Slightly lighter for secondary text */
+  max-width: 400px;
 }
 
 .empty-icon {
@@ -234,6 +261,32 @@
   gap: 10px;
 }
 
+.request-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.approve-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.reject-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.approve-btn mat-icon,
+.reject-btn mat-icon {
+  font-size: 1.2rem;
+}
+
 .delete-btn {
   color: #f44336;
 }
@@ -311,6 +364,17 @@
   .notification-actions-content {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .request-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .approve-btn,
+  .reject-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 

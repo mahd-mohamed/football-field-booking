@@ -48,7 +48,7 @@
     </div>
 
     <!-- Create Team Section (Only for Players) -->
-    <div class="col-12 col-md-6 col-lg-4" *ngIf="userRole === 'PLAYER'">
+    <div class="col-12 col-md-6 col-lg-4" *ngIf="userRole === 'USER'">
       <div class="card shadow-sm p-4 text-center">
         <h5 class="card-title mb-3">Create New Team</h5>
         <p class="mb-4">Start your own team and become an organizer.</p>
@@ -71,20 +71,6 @@
         <h5 class="card-title mb-3">Notifications</h5>
         <p class="mb-4">View your notifications and updates.</p>
         <a routerLink="/dashboard/notifications" class="btn btn-outline-secondary w-100">Notifications</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Role Information -->
-  <div class="row mt-4">
-    <div class="col-12">
-      <div class="alert alert-info text-center">
-        <strong>Current Role:</strong> {{ userRole }}
-        <span *ngIf="userRole === 'ORGANIZER' && currentUser?.role === 'PLAYER'">
-          (You are an organizer in your teams, but your main role is Player)
-        </span>
-        <br>
-        <strong>Teams Created:</strong> {{ teamCount }}
       </div>
     </div>
   </div>

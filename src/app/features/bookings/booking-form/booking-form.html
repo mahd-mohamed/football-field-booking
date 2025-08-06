@@ -7,7 +7,7 @@
 
     <mat-card-content>
       <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()" class="booking-form">
-        
+
         <!-- Success/Error Messages -->
         <div *ngIf="successMessage" class="success-message" role="alert">
           {{ successMessage }}
@@ -21,7 +21,7 @@
           <mat-label>Select Place</mat-label>
           <mat-select formControlName="place_id" (selectionChange)="onPlaceChange()">
             <mat-option *ngFor="let place of places" [value]="place.id.toString()">
-              {{ place.name }} - {{ place.location }} ({{ place.type }})
+              {{ place.name }} - {{ place.location }} ({{ place.placeType }})
             </mat-option>
           </mat-select>
           <mat-error *ngIf="bookingForm.get('place_id')?.hasError('required')">
@@ -45,7 +45,7 @@
         <!-- Date Selection -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Select Date</mat-label>
-          <input matInput [matDatepicker]="picker" formControlName="date" (dateChange)="onDateChange()">
+          <input matInput [matDatepicker]="picker" formControlName="date" [min]="minDate" (dateChange)="onDateChange()">
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
           <mat-error *ngIf="bookingForm.get('date')?.hasError('required')">
@@ -53,17 +53,15 @@
           </mat-error>
         </mat-form-field>
 
+
         <!-- Available Time Slots -->
         <div *ngIf="selectedPlace && availableTimeSlots.length > 0" class="time-slots-section">
           <h3>Available Time Slots</h3>
           <p class="time-slots-info">Click on time slots to select them for booking. Consecutive slots will be grouped into a single booking.</p>
-          
+
           <div class="time-slots-grid">
-            <mat-chip 
-              *ngFor="let slot of availableTimeSlots" 
-              [class.selected]="isSlotSelected(slot)"
-              [class.unavailable]="!slot.is_available"
-              (click)="toggleTimeSlot(slot)"
+            <mat-chip *ngFor="let slot of availableTimeSlots" [class.selected]="isSlotSelected(slot)"
+              [class.unavailable]="!slot.is_available" [disabled]="!slot.is_available" (click)="toggleTimeSlot(slot)"
               class="time-slot-chip">
               {{ formatTime(slot.start_time) }} - {{ formatTime(slot.end_time) }}
               <span *ngIf="!slot.is_available" class="unavailable-text">(Booked)</span>
@@ -74,8 +72,8 @@
           <div *ngIf="selectedTimeSlots.length > 0" class="selected-slots">
             <h4>Selected Time Slots ({{ selectedTimeSlots.length }})</h4>
             <div class="selected-slots-list">
-              <mat-chip 
-                *ngFor="let slot of selectedTimeSlots" 
+              <mat-chip
+                *ngFor="let slot of selectedTimeSlots"
                 class="selected-slot-chip">
                 {{ formatTime(slot.start_time) }} - {{ formatTime(slot.end_time) }}
               </mat-chip>
@@ -97,8 +95,8 @@
                 <div class="booking-group-slots">
                   <small>Includes {{ group.slots.length }} time slot(s):</small>
                   <div class="group-slots-list">
-                    <mat-chip 
-                      *ngFor="let slot of group.slots" 
+                    <mat-chip
+                      *ngFor="let slot of group.slots"
                       class="group-slot-chip">
                       {{ formatTime(slot.start_time) }} - {{ formatTime(slot.end_time) }}
                     </mat-chip>
@@ -106,7 +104,7 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="total-summary">
               <strong>Total: {{ bookingGroups.length }} booking(s) for {{ formatDuration(getTotalDuration()) }}</strong>
             </div>
@@ -136,10 +134,10 @@
       <button mat-button type="button" (click)="onCancel()" [disabled]="isLoading">
         Cancel
       </button>
-      <button 
-        mat-raised-button 
-        color="primary" 
-        type="submit" 
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
         (click)="onSubmit()"
         [disabled]="bookingForm.invalid || isLoading || bookingGroups.length === 0">
         <mat-icon *ngIf="isLoading">hourglass_empty</mat-icon>

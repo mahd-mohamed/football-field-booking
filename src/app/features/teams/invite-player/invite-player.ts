@@ -3,8 +3,11 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { NgIf } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { Auth, User } from '../../../core/services/auth';
-import { Team, TeamMemberRole } from '../../../core/services/team';
+import { AuthService } from '../../../core/services/auth.service';
+import { TeamService, TeamMemberRole } from '../../../core/services/team.service';
+import { TeamMemberService } from '../../../core/services/team-member.service';
+
+
 
 @Component({
   selector: 'app-invite-player',
@@ -23,15 +26,17 @@ export class InvitePlayer implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private teamService: Team,
-    private authService: Auth
-  ) { }
+    private teamService: TeamService,
+    private teamMemberService: TeamMemberService,
+    private authService: AuthService
+  ) {
+    // Initialize the form with email validation
+    this.inviteForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]]
+    });
+  }
 
   ngOnInit(): void {
-    this.inviteForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]] // Changed to email input
-    });
-
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const id = params.get('id');
       if (id) {
@@ -55,49 +60,35 @@ export class InvitePlayer implements OnInit, OnDestroy {
     this.successMessage = null;
 
     if (this.inviteForm.valid && this.teamId) {
-      const { email } = this.inviteForm.value; 
-      const role: TeamMemberRole = 'MEMBER'; 
-      const currentUser = this.authService.getCurrentUser();
-      
-      if (!currentUser) {
-        this.errorMessage = 'User not authenticated. Please login again.';
-        return;
-      }
+      const { email } = this.inviteForm.value;
+      const role: TeamMemberRole = 'MEMBER';
 
-      console.log(`InvitePlayerComponent: Attempting to invite user with email: ${email} to team ${this.teamId} as ${role} by ${currentUser.id}`);
+      console.log(`InvitePlayerComponent: Attempting to invite user with email: ${email} to team ${this.teamId} as ${role}`);
 
-      // For now, we'll use a mock user since getUserByEmail doesn't exist
-      // In a real app, you would implement this method in the team service
-      const mockUser = {
-        id: 999, // Mock user ID
-        username: email.split('@')[0], // Use email prefix as username
-        email: email
-      };
+      // Show loading state
+      this.inviteForm.disable();
 
-      // Add team member with the required parameters
-      this.teamService.addTeamMember(
-        this.teamId, 
-        mockUser.id, 
-        mockUser.username, 
-        mockUser.email, 
-        role, 
-        'PENDING', 
-        currentUser.id
-      ).pipe(takeUntil(this.destroy$))
+      // Call the new inviteUserByEmail method
+      this.teamMemberService.inviteUserByEmail(this.teamId, email)
+        .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (member) => {
-            this.successMessage = `Player ${mockUser.username} (${mockUser.email}) invited successfully! Status: ${member.status}`;
+            this.successMessage = `Invitation sent successfully to ${email}!`;
             console.log('InvitePlayerComponent: Invitation successful:', member);
-            setTimeout(() => {
-              this.router.navigate(['/dashboard/teams', this.teamId]);
-            }, 1500);
+
+            // Reset form and navigate back immediately
+            this.inviteForm.reset();
+            this.router.navigate(['/dashboard/teams', this.teamId]);
           },
           error: (err) => {
-            this.errorMessage = `Failed to invite player: ${err.message || 'Unknown error'}`;
+            this.errorMessage = `Failed to send invitation: ${err.message || 'Unknown error'}`;
             console.error('InvitePlayerComponent: Invitation failed:', err);
+            this.inviteForm.enable();
+          },
+          complete: () => {
+            this.inviteForm.enable();
           }
         });
-
     } else {
       this.errorMessage = 'Please enter a valid email address.';
       this.inviteForm.markAllAsTouched();

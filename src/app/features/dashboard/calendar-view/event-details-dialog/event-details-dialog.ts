@@ -69,7 +69,14 @@ export class EventDetailsDialogComponent {
   }
 
   formatDate(date: string): string {
-    return new Date(date).toLocaleDateString('en-US', {
+    if (!date) return 'Invalid Date';
+    
+    const dateObj = new Date(date);
+    if (isNaN(dateObj.getTime())) {
+      return 'Invalid Date';
+    }
+    
+    return dateObj.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -79,17 +86,29 @@ export class EventDetailsDialogComponent {
   }
 
   getDuration(startTime: string, endTime: string): string {
-    const start = new Date(startTime);
-    let end: Date;
+    if (!startTime) return 'Invalid Duration';
     
+    const start = new Date(startTime);
+    if (isNaN(start.getTime())) {
+      return 'Invalid Duration';
+    }
+    
+    let end: Date;
     if (endTime) {
       end = new Date(endTime);
+      if (isNaN(end.getTime())) {
+        return 'Invalid Duration';
+      }
     } else {
       // Default to 2 hours if no end time provided
       end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
     }
     
     const diffMs = end.getTime() - start.getTime();
+    if (diffMs < 0) {
+      return 'Invalid Duration';
+    }
+    
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
     
@@ -97,19 +116,6 @@ export class EventDetailsDialogComponent {
       return `${diffHours}h ${diffMinutes}m`;
     } else {
       return `${diffMinutes}m`;
-    }
-  }
-
-  getStatusText(status: string): string {
-    switch (status?.toLowerCase()) {
-      case 'confirmed':
-        return 'Confirmed';
-      case 'pending':
-        return 'Pending';
-      case 'cancelled':
-        return 'Cancelled';
-      default:
-        return 'Unknown';
     }
   }
 
@@ -128,20 +134,20 @@ export class EventDetailsDialogComponent {
     }
   }
 
-  getMatchStatusText(status: string): string {
-    switch (status) {
-      case 'CONFIRMED':
-        return 'Confirmed';
-      case 'SCHEDULED':
-        return 'Scheduled';
-      case 'PENDING_PAYMENT':
-        return 'Pending Payment';
-      case 'CANCELLED':
-        return 'Cancelled';
-      default:
-        return 'Unknown';
-    }
+getMatchStatusText(status: string): string {
+  switch (status) {
+    case 'CONFIRMED':
+      return 'Confirmed';
+    case 'PENDING_PLAYERS':
+      return 'Pending Players';
+    case 'PENDING_PAYMENT':
+      return 'Pending Payment';
+    case 'CANCELLED':
+      return 'Cancelled';
+    default:
+      return 'Unknown';
   }
+}
 
   onClose(): void {
     this.dialogRef.close();

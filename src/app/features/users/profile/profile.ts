@@ -8,12 +8,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Auth, User } from '../../../core/services/auth';
-import { Team } from '../../../core/services/team';
+import { AuthService } from '../../../core/services/auth.service';
+import { IUser } from '../../../core/models/iuser.model';
 
-interface UserProfile extends User {
-  createdAt?: string;
-}
+import { TeamService } from '../../../core/services/team.service';
+import { UserService } from '../../../core/services/user.service';
+
 
 @Component({
   selector: 'app-profile',
@@ -33,11 +33,11 @@ interface UserProfile extends User {
   styleUrl: './profile.css'
 })
 export class Profile implements OnInit {
-  currentUser: UserProfile | null = null;
+  currentUser: IUser | null = null;
   isEditing = false;
   isLoading = false;
   isSaving = false;
-  effectiveRole: string = 'PLAYER';
+  effectiveRole: string = 'USER';
   userTeams: any[] = [];
 
   // Form data for editing
@@ -49,8 +49,9 @@ export class Profile implements OnInit {
   };
 
   constructor(
-    private authService: Auth,
-    private teamService: Team,
+    private authService: AuthService,
+    private teamService: TeamService,
+    private userService: UserService,
     private snackBar: MatSnackBar
   ) {}
 
@@ -60,22 +61,22 @@ export class Profile implements OnInit {
 
   loadUserProfile(): void {
     this.isLoading = true;
-    
+
     // Get current user from auth service
     const user = this.authService.getCurrentUser();
-    
+
     if (user) {
-      // Convert User to UserProfile
+      // Convert User to UserProfile and add default status
       this.currentUser = {
         ...user,
-        status: user.status || 'ACTIVE' // Use existing status or default to ACTIVE
+        status: 'ACTIVE' // Default to ACTIVE since User type doesn't have status
       };
       this.editForm.username = this.currentUser.username;
-      
+
       // Load user teams and determine effective role
       this.loadUserTeams();
     }
-    
+
     this.isLoading = false;
   }
 
@@ -83,7 +84,7 @@ export class Profile implements OnInit {
     if (!this.currentUser) return;
 
     // Load teams created by the current user
-    this.teamService.getTeamsByCreator(this.currentUser.id).subscribe({
+    this.teamService.getTeamsByCreator().subscribe({
       next: (teams) => {
         this.userTeams = teams;
         this.checkIfUserIsOrganizer();
@@ -99,8 +100,8 @@ export class Profile implements OnInit {
     if (!this.currentUser) return;
 
     // Check if user is organizer in any team
-    const checkPromises = this.userTeams.map(team => 
-      this.teamService.isUserTeamOrganizer(this.currentUser!.id, team.id).toPromise()
+    const checkPromises = this.userTeams.map(team =>
+      this.teamService.isUserTeamOrganizer(team.id).toPromise()
     );
 
     Promise.all(checkPromises).then(results => {
@@ -115,9 +116,7 @@ export class Profile implements OnInit {
   private setEffectiveRole(isOrganizerInAnyTeam: boolean = false): void {
     if (this.currentUser?.role === 'ADMIN') {
       this.effectiveRole = 'ADMIN';
-    } else if (this.currentUser?.role === 'ORGANIZER' || isOrganizerInAnyTeam) {
-      this.effectiveRole = 'ORGANIZER';
-    } else {
+    }  else {
       this.effectiveRole = 'USER';
     }
   }
@@ -168,86 +167,92 @@ export class Profile implements OnInit {
         this.snackBar.open('New password must be at least 6 characters', 'Close', { duration: 3000 });
         return;
       }
-      
+
       // Validate current password
-      if (this.editForm.currentPassword !== this.currentUser.password) {
-        this.snackBar.open('Current password is incorrect', 'Close', { duration: 3000 });
-        return;
-      }
+      const isValidPassword = this.userService.checkPassword(this.editForm.currentPassword);
+      isValidPassword.subscribe({
+        next: (isValid) => {
+          if (!isValid) {
+            this.snackBar.open('Current password is incorrect', 'Close', { duration: 3000 });
+            return;
+          }
+        },
+        error: (error) => {
+          console.error('Error checking password:', error);
+          this.snackBar.open('Error checking current password', 'Close', { duration: 3000 });
+        }
+      });
     }
 
     this.isSaving = true;
 
-    // Simulate API call to update profile
-    setTimeout(() => {
-      if (this.currentUser) {
-        // Update user data
-        this.currentUser.username = this.editForm.username;
-        
-        // Update password if provided
-        if (this.editForm.newPassword) {
-          this.currentUser.password = this.editForm.newPassword;
-        }
-        
-        // Update in localStorage (simulating database update)
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const userIndex = users.findIndex((u: any) => u.id === this.currentUser?.id);
-        if (userIndex !== -1) {
-          users[userIndex].username = this.editForm.username;
-          if (this.editForm.newPassword) {
-            users[userIndex].password = this.editForm.newPassword;
-          }
-          localStorage.setItem('users', JSON.stringify(users));
-        }
+    if (this.currentUser) {
+      const updates: Record<string, any> = {};
 
-        // Update current user in localStorage
-        localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-
-        this.isEditing = false;
-        this.isSaving = false;
-        this.snackBar.open('Profile updated successfully', 'Close', { duration: 2000 });
+      // Only include username if it changed
+      if (this.editForm.username && this.editForm.username !== this.currentUser.username) {
+        updates['username'] = this.editForm.username;
       }
-    }, 1000);
+
+      // Only include password if a new password is provided
+      if (this.editForm.newPassword) {
+        updates['password'] = this.editForm.newPassword;
+      }
+
+      // Only make the API call if there’s something to update
+      if (Object.keys(updates).length > 0) {
+        this.userService.updateUser(this.currentUser.id, updates).subscribe(() => {
+          // Update current user in sessionStorage with new username if changed
+          if (updates['username']) {
+            if (this.currentUser) {
+              this.currentUser.username = updates['username'];
+              this.authService.setCurrentUser(this.currentUser);
+            }
+          }
+          this.snackBar.open('Profile updated successfully', 'Close', { duration: 2000 });
+        });
+      } else {
+        this.snackBar.open('No changes to update', 'Close', { duration: 2000 });
+        this.isSaving = false;
+        return;
+      }
+
+      this.isEditing = false;
+      this.isSaving = false;
+    }
   }
 
   getRoleDisplayName(role: string): string {
     switch (role) {
-      case 'ADMIN': return 'Administrator';
-      case 'ORGANIZER': return 'Organizer';
-      case 'USER': return 'User';
+      case 'ADMIN': return 'ADMIN';
+      // case 'ORGANIZER': return 'Organizer';
+      // case 'PLAYER': return 'Player';
+      case 'USER':return 'USER';
       default: return role;
     }
   }
 
-  getStatusDisplayName(status: string): string {
+  getStatusDisplayName(status: string | undefined): string {
+    if (!status) return 'Active'; // Default to Active if status is undefined
     switch (status) {
-      case 'ACTIVE':
-        return 'Active';
-      case 'INACTIVE':
-        return 'Inactive';
-      default:
-        return 'Unknown';
+      case 'ACTIVE': return 'Active';
+      case 'INACTIVE': return 'Inactive';
+      default: return status;
     }
   }
 
   getRoleColor(role: string): string {
     switch (role) {
       case 'ADMIN': return 'danger';
-      case 'ORGANIZER': return 'primary';
-      case 'USER': return 'success';
+      // case 'ORGANIZER': return 'primary';
+      case 'USER': return 'primary';
       default: return 'secondary';
     }
   }
 
-  getStatusColor(status: string): string {
-    switch (status) {
-      case 'ACTIVE':
-        return 'success';
-      case 'INACTIVE':
-        return 'danger';
-      default:
-        return 'secondary';
-    }
+  getStatusColor(status: string | undefined): string {
+    if (!status) return 'success'; // Default to success if status is undefined
+    return status === 'ACTIVE' ? 'success' : 'secondary';
   }
 
   formatDate(dateString: string): string {

@@ -182,6 +182,21 @@
   margin: 0;
 }
 
+/* Custom snackbar styles */
+::ng-deep .success-snackbar {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+::ng-deep .error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+::ng-deep .mat-mdc-snack-bar-container {
+  border-radius: 8px !important;
+}
+
 @media (max-width: 900px) {
   .card-header, .card-body {
     padding: 1rem 0.5vw;

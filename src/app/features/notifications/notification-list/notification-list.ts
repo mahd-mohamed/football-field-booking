@@ -7,8 +7,13 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Notification, INotification, NotificationType } from '../../../core/services/notification';
-import { Auth } from '../../../core/services/auth';
+import { NotificationService, INotification, RequestType } from '../../../core/services/notification.service';
+import { TeamMemberService, TeamMemberStatus } from '../../../core/services/team-member.service';
+import { MatchParticipantService } from '../../../core/services/match-participant.service';
+import { AuthService } from '../../../core/services/auth.service';
+// TODO: Add imports for other services when they become available
+// import { MatchService } from '../../../core/services/match.service';
+// import { TeamInvitationService } from '../../../core/services/team-invitation.service';
 
 @Component({
   selector: 'app-notification-list',
@@ -31,9 +36,14 @@ export class NotificationList implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(
-    private notificationService: Notification,
-    private authService: Auth,
+    private notificationService: NotificationService,
+    private teamMemberService: TeamMemberService,
+    private matchParticipantService: MatchParticipantService,
+    private authService: AuthService,
     private router: Router
+    // TODO: Add other services when available
+    // private matchService: MatchService,
+    // private teamInvitationService: TeamInvitationService
   ) {}
 
   ngOnInit(): void {
@@ -53,11 +63,12 @@ export class NotificationList implements OnInit, OnDestroy {
       return;
     }
 
-    this.notificationService.getUserNotifications(currentUser.id)
+    this.notificationService.getUserNotifications()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (notifications) => {
-          this.notifications = notifications;
+          // Filter to show only pending notifications
+          this.notifications = notifications.filter(n => n.status === 'PENDING');
           this.loading = false;
           this.loadUnreadCount();
         },
@@ -70,129 +81,33 @@ export class NotificationList implements OnInit, OnDestroy {
   }
 
   loadUnreadCount(): void {
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) return;
-
-    this.notificationService.getUnreadCount(currentUser.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (count) => {
-          this.unreadCount = count;
-        },
-        error: (err) => {
-          console.error('Failed to load unread count', err);
-        }
-      });
+    // Since we only show pending notifications, unread count equals total count
+    this.unreadCount = this.notifications.length;
   }
 
-  markAsRead(notificationId: string): void {
-    this.notificationService.markAsRead(notificationId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          // Update local state
-          const notification = this.notifications.find(n => n.id === notificationId);
-          if (notification && notification.status === 'UNREAD') {
-            notification.status = 'READ';
-            notification.readAt = new Date().toISOString();
-            this.unreadCount = Math.max(0, this.unreadCount - 1);
-          }
-        },
-        error: (err) => {
-          console.error('Failed to mark notification as read', err);
-          this.errorMessage = 'Failed to mark notification as read';
-        }
-      });
-  }
-
-  markAllAsRead(): void {
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) return;
-
-    this.notificationService.markAllAsRead(currentUser.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          // Update local state
-          this.notifications.forEach(n => {
-            if (n.status === 'UNREAD') {
-              n.status = 'READ';
-              n.readAt = new Date().toISOString();
-            }
-          });
-          this.unreadCount = 0;
-          this.successMessage = 'All notifications marked as read';
-          setTimeout(() => this.successMessage = null, 3000);
-        },
-        error: (err) => {
-          console.error('Failed to mark all notifications as read', err);
-          this.errorMessage = 'Failed to mark all notifications as read';
-        }
-      });
-  }
-
-  deleteNotification(notificationId: string): void {
-    this.notificationService.deleteNotification(notificationId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          // Update local state
-          const deletedNotification = this.notifications.find(n => n.id === notificationId);
-          if (deletedNotification && deletedNotification.status === 'UNREAD') {
-            this.unreadCount = Math.max(0, this.unreadCount - 1);
-          }
-          this.notifications = this.notifications.filter(n => n.id !== notificationId);
-          this.successMessage = 'Notification deleted';
-          setTimeout(() => this.successMessage = null, 3000);
-        },
-        error: (err) => {
-          console.error('Failed to delete notification', err);
-          this.errorMessage = 'Failed to delete notification';
-        }
-      });
-  }
-
-  getNotificationIcon(type: NotificationType): string {
-    const iconMap: Record<NotificationType, string> = {
-      'BOOKING_CONFIRMATION': 'event_available',
+  getNotificationIcon(type: RequestType): string {
+    const iconMap: Record<RequestType, string> = {
       'MATCH_INVITATION': 'sports_soccer',
-      'TEAM_JOIN_REQUEST': 'group_add',
-      'TEAM_INVITATION': 'group',
-      'APPROVAL': 'check_circle',
-      'REJECTION': 'cancel',
-      'MATCH_PARTICIPATION_REQUEST': 'person_add',
-      'MATCH_PARTICIPATION_APPROVED': 'thumb_up',
-      'MATCH_PARTICIPATION_REJECTED': 'thumb_down'
+      'JOIN_TEAM_REQUEST': 'group_add',
+      'JOIN_TEAM_INVITATION': 'group'
     };
     return iconMap[type] || 'notifications';
   }
 
-  getNotificationIconClass(type: NotificationType): string {
-    const classMap: Record<NotificationType, string> = {
-      'BOOKING_CONFIRMATION': 'icon-success',
+  getNotificationIconClass(type: RequestType): string {
+    const classMap: Record<RequestType, string> = {
       'MATCH_INVITATION': 'icon-primary',
-      'TEAM_JOIN_REQUEST': 'icon-warning',
-      'TEAM_INVITATION': 'icon-info',
-      'APPROVAL': 'icon-success',
-      'REJECTION': 'icon-danger',
-      'MATCH_PARTICIPATION_REQUEST': 'icon-warning',
-      'MATCH_PARTICIPATION_APPROVED': 'icon-success',
-      'MATCH_PARTICIPATION_REJECTED': 'icon-danger'
+      'JOIN_TEAM_REQUEST': 'icon-warning',
+      'JOIN_TEAM_INVITATION': 'icon-info'
     };
     return classMap[type] || 'icon-default';
   }
 
-  getNotificationTypeLabel(type: NotificationType): string {
-    const labelMap: Record<NotificationType, string> = {
-      'BOOKING_CONFIRMATION': 'Booking',
-      'MATCH_INVITATION': 'Match',
-      'TEAM_JOIN_REQUEST': 'Team Request',
-      'TEAM_INVITATION': 'Team Invite',
-      'APPROVAL': 'Approval',
-      'REJECTION': 'Rejection',
-      'MATCH_PARTICIPATION_REQUEST': 'Participation',
-      'MATCH_PARTICIPATION_APPROVED': 'Approved',
-      'MATCH_PARTICIPATION_REJECTED': 'Rejected'
+  getNotificationTypeLabel(type: RequestType): string {
+    const labelMap: Record<RequestType, string> = {
+      'MATCH_INVITATION': 'Match Invitation',
+      'JOIN_TEAM_REQUEST': 'Join Request',
+      'JOIN_TEAM_INVITATION': 'Team Invitation'
     };
     return labelMap[type] || 'Notification';
   }
@@ -209,51 +124,160 @@ export class NotificationList implements OnInit, OnDestroy {
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInHours < 24) return `${diffInHours}h ago`;
     if (diffInDays < 7) return `${diffInDays}d ago`;
-    
+
     return date.toLocaleDateString();
   }
 
   hasAction(notification: INotification): boolean {
-    return ['MATCH_INVITATION', 'TEAM_INVITATION', 'TEAM_JOIN_REQUEST', 'MATCH_PARTICIPATION_REQUEST'].includes(notification.type);
+    return ['MATCH_INVITATION', 'JOIN_TEAM_INVITATION', 'JOIN_TEAM_REQUEST'].includes(notification.requestType);
   }
 
   getActionLabel(notification: INotification): string {
-    const actionMap: Record<NotificationType, string> = {
+    const actionMap: Record<RequestType, string> = {
       'MATCH_INVITATION': 'View Match',
-      'TEAM_INVITATION': 'View Team',
-      'TEAM_JOIN_REQUEST': 'Manage Request',
-      'MATCH_PARTICIPATION_REQUEST': 'Manage Request',
-      'BOOKING_CONFIRMATION': '',
-      'APPROVAL': '',
-      'REJECTION': '',
-      'MATCH_PARTICIPATION_APPROVED': '',
-      'MATCH_PARTICIPATION_REJECTED': ''
+      'JOIN_TEAM_INVITATION': 'View Team',
+      'JOIN_TEAM_REQUEST': 'Manage Request',
     };
-    return actionMap[notification.type] || '';
+    return actionMap[notification.requestType] || '';
   }
 
   handleNotificationAction(notification: INotification): void {
-    switch (notification.type) {
+    switch (notification.requestType) {
       case 'MATCH_INVITATION':
-        if (notification.metadata?.matchId) {
-          this.router.navigate(['/dashboard/matches', notification.metadata.matchId]);
+        // Navigate to match details using jokerId
+        if (notification.jokerId) {
+          this.router.navigate(['/dashboard/matches', notification.jokerId]);
         }
         break;
-      case 'TEAM_INVITATION':
-        if (notification.metadata?.teamId) {
-          this.router.navigate(['/dashboard/teams', notification.metadata.teamId]);
+      case 'JOIN_TEAM_INVITATION':
+        // Navigate to team details using jokerId
+        if (notification.jokerId) {
+          this.router.navigate(['/dashboard/teams', notification.jokerId]);
         }
         break;
-      case 'TEAM_JOIN_REQUEST':
-        if (notification.metadata?.teamId) {
-          this.router.navigate(['/dashboard/teams/requests']);
-        }
-        break;
-      case 'MATCH_PARTICIPATION_REQUEST':
-        if (notification.metadata?.matchId) {
-          this.router.navigate(['/dashboard/matches', notification.metadata.matchId, 'participants']);
-        }
+      case 'JOIN_TEAM_REQUEST':
+        // Navigate to team requests page
+        this.router.navigate(['/dashboard/teams/requests']);
         break;
     }
+  }
+
+  approveRequest(notification: INotification): void {
+    this.respondToRequest(notification, 'APPROVED');
+  }
+
+  rejectRequest(notification: INotification): void {
+    this.respondToRequest(notification, 'REJECTED');
+  }
+
+  private respondToRequest(notification: INotification, status: 'APPROVED' | 'REJECTED'): void {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) {
+      this.errorMessage = 'User not authenticated';
+      return;
+    }
+
+    if (!notification.jokerId || !status) {
+      this.errorMessage = 'Invalid request data';
+      return;
+    }
+
+    console.log('Responding to notification request:', notification.id, 'with status:', status, 'type:', notification.requestType);
+
+    // Show loading state
+    this.loading = true;
+
+    // Route to different services based on request type
+    switch (notification.requestType) {
+      case 'JOIN_TEAM_REQUEST':
+        this.handleJoinTeamRequest(notification, status);
+        break;
+      case 'JOIN_TEAM_INVITATION':
+        this.handleJoinTeamInvitation(notification, status);
+        break;
+      case 'MATCH_INVITATION':
+        this.handleMatchInvitation(notification, status);
+        break;
+      default:
+        console.error('Unknown request type:', notification.requestType);
+        this.errorMessage = 'Unknown request type';
+        this.loading = false;
+        break;
+    }
+  }
+
+  private handleJoinTeamRequest(notification: INotification, status: 'APPROVED' | 'REJECTED'): void {
+    // Use TeamMemberService for join team requests
+    const currentUser = this.authService.getCurrentUser();
+  if (!currentUser) {
+    this.errorMessage = 'User not authenticated';
+    return;
+  }
+
+    this.teamMemberService.respondToJoinRequest(notification.jokerId, status as TeamMemberStatus, currentUser.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          console.log('Join team request response finished');
+          this.handleSuccessResponse(status, 'join request');
+        },
+        error: (err) => {
+          this.handleErrorResponse(err, 'join request');
+        }
+      });
+  }
+
+  private handleJoinTeamInvitation(notification: INotification, status: 'APPROVED' | 'REJECTED'): void {
+    // Use TeamMemberService for team invitations
+    this.teamMemberService.respondToInvitation(notification.jokerId, status as TeamMemberStatus)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Team invitation response finished:', response);
+          this.handleSuccessResponse(status, 'team invitation');
+        },
+        error: (err) => {
+          this.handleErrorResponse(err, 'team invitation');
+        }
+      });
+  }
+
+  private handleMatchInvitation(notification: INotification, status: 'APPROVED' | 'REJECTED'): void {
+    // Convert APPROVED/REJECTED to ACCEPTED/DECLINED for match participant service
+    const participantStatus = status === 'APPROVED' ? 'ACCEPTED' : 'DECLINED';
+
+    // Use MatchParticipantService for match invitations
+    this.matchParticipantService.respondToMatchInvitation(notification.jokerId, participantStatus)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Match invitation response finished:', response);
+          this.handleSuccessResponse(status, 'match invitation');
+        },
+        error: (err) => {
+          this.handleErrorResponse(err, 'match invitation');
+        }
+      });
+  }
+
+  private handleSuccessResponse(status: 'APPROVED' | 'REJECTED', requestType: string): void {
+    this.successMessage = status === 'APPROVED'
+      ? `Successfully approved the ${requestType}!`
+      : `Rejected the ${requestType}`;
+
+    // Remove the notification from the list or reload notifications
+    this.loadNotifications();
+
+    // Success message will be cleared by user interaction or page navigation
+
+    this.loading = false;
+  }
+
+  private handleErrorResponse(error: any, requestType: string): void {
+    console.error(`Failed to respond to ${requestType}`, error);
+    this.errorMessage = error.message || `Failed to respond to ${requestType}`;
+    this.loading = false;
+
+    // Error message will be cleared by user interaction or page navigation
   }
 }

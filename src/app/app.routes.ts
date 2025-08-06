@@ -100,7 +100,7 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'bookings/:id',
+        path: 'bookings/details/:id',
         loadComponent: () =>
           import('./features/bookings/booking-details/booking-details').then(
             (m) => m.BookingDetailsComponent
@@ -121,13 +121,6 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'matches/schedule',
-        loadComponent: () =>
-          import('./features/matches/schedule-match/schedule-match').then(
-            (m) => m.ScheduleMatch
-          ),
-      },
-      {
         path: 'matches/:id',
         loadComponent: () =>
           import('./features/matches/match-details/match-details').then(
@@ -135,10 +128,10 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'matches/:id/participants/:teamId',
+        path: 'bookings/:bookingId/invite',
         loadComponent: () =>
-          import('./features/matches/match-participants/match-participants').then(
-            (m) => m.MatchParticipants
+          import('./features/bookings/invite-participants/invite-participants').then(
+            (m) => m.InviteParticipantsComponent
           ),
       },
       {
@@ -154,23 +147,24 @@ export const routes: Routes = [
           import('./features/users/profile/profile').then((m) => m.Profile),
       },
       {
-        path: 'admin',
-        loadComponent: () =>
-          import('./features/dashboard/admin-dashboard/admin-dashboard').then(
-            (m) => m.AdminDashboardComponent
-          ),
-      },
-      {
         path: 'calendar',
         loadComponent: () =>
           import('./features/dashboard/calendar-view/calendar-view').then(
             (m) => m.CalendarViewComponent
           ),
       },
+      {
+        path: 'admin',
+        loadComponent: () =>
+          import('./features/dashboard/admin-dashboard/admin-dashboard').then(
+            (m) => m.AdminDashboardComponent
+          ),
+      },
     ],
   },
   {
     path: '**',
-    redirectTo: '',
+    loadComponent: () =>
+      import('./shared/not-found/not-found').then((m) => m.NotFound),
   },
 ];

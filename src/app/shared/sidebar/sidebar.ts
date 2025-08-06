@@ -3,9 +3,9 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule, Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { Auth } from '../../core/services/auth';
-import { Team } from '../../core/services/team';
-import { Notification } from '../../core/services/notification';
+import { AuthService } from '../../core/services/auth.service';
+import { TeamService } from '../../core/services/team.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -25,20 +25,22 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(
-    private auth: Auth,
-    private teamService: Team,
-    private notificationService: Notification,
+    private authService: AuthService,
+    private teamService: TeamService,
+    private notificationService: NotificationService,
     private router: Router
   ) {}
 
-  ngOnInit(): void {
-    this.role = this.auth.getCurrentUser()?.role;
+ngOnInit(): void {
+  this.role = this.authService.getCurrentUser()?.role?.toUpperCase();
+  console.log('Sidebar detected role:', this.role, 'Raw user:', this.authService.getCurrentUser());
+  
+  if (this.role !== 'ADMIN') {
     this.loadUserTeams();
-    this.loadNotificationCount();
-    
-    // Listen for team creation events to refresh sidebar state
-    window.addEventListener('teamCreated', this.handleTeamCreated.bind(this) as EventListener);
   }
+  
+  this.loadNotificationCount();
+}
 
   ngOnDestroy(): void {
     // Clean up event listener
@@ -53,42 +55,41 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.loadUserTeams();
   }
 
-  private loadUserTeams(): void {
-    const currentUser = this.auth.getCurrentUser();
+private loadUserTeams(): void {
+  if (this.role === 'ADMIN') {
+    this.userTeams = [];
+    console.log('Admin user detected, skipping team fetch.');
+    return;
+  }
+
+  this.teamService.getTeamsByCreator().subscribe({
+    next: (response: any) => {
+      const teams = response?.content || [];
+      this.userTeams = teams.filter((team: any) =>
+        team.members?.some((m: any) => m.role === 'ORGANIZER')
+      );
+      console.log('Organizer teams:', this.userTeams);
+    },
+    error: (error: any) => {
+      console.error('Error loading user teams:', error);
+    }
+  });
+}
+
+
+  private loadNotificationCount(): void {
+    const currentUser = this.authService.getCurrentUser();
     if (currentUser) {
-      // Load teams created by the current user
-      this.teamService.getTeamsByCreator(currentUser.id).subscribe({
-        next: (teams) => {
-          this.userTeams = teams;
-          this.checkIfUserIsOrganizer(currentUser.id);
-        },
-        error: (error) => {
-          console.error('Error loading user teams:', error);
-        }
+      this.notificationService.getNotificationCount(currentUser.id).subscribe(count => {
+        this.unreadNotificationCount = count;
       });
     }
   }
 
-  private loadNotificationCount(): void {
-    const currentUser = this.auth.getCurrentUser();
-    if (currentUser) {
-      this.notificationService.getUnreadCount(currentUser.id)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (count) => {
-            this.unreadNotificationCount = count;
-          },
-          error: (err) => {
-            console.error('Error loading notification count:', err);
-          }
-        });
-    }
-  }
-
-  private checkIfUserIsOrganizer(userId: number): void {
+  private checkIfUserIsOrganizer(userId: string): void {
     // Check if user is organizer in any team
-    const checkPromises = this.userTeams.map(team => 
-      this.teamService.isUserTeamOrganizer(userId, team.id).toPromise()
+    const checkPromises = this.userTeams.map(team =>
+      this.teamService.isUserTeamOrganizer(team.id).toPromise()
     );
 
     Promise.all(checkPromises).then(results => {
@@ -106,34 +107,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return 'USER';
   }
 
-  // Check if user can access teams
-  get canAccessTeams(): boolean {
-    return this.effectiveRole === 'ORGANIZER' || this.effectiveRole === 'USER' || this.effectiveRole === 'ADMIN';
-  }
-
-  // Check if user can access matches
-  get canAccessMatches(): boolean {
-    return this.effectiveRole === 'ORGANIZER' || this.effectiveRole === 'USER' || this.effectiveRole === 'ADMIN';
-  }
-
-  // Check if user can access places
-  get canAccessPlaces(): boolean {
-    return this.effectiveRole === 'ORGANIZER' || this.effectiveRole === 'USER' || this.effectiveRole === 'ADMIN';
-  }
-
-  // Check if user can access bookings
-  get canAccessBookings(): boolean {
-    return this.effectiveRole === 'ORGANIZER' || this.effectiveRole === 'USER' || this.effectiveRole === 'ADMIN';
-  }
-
-  // Check if user can access profile
-  get canAccessProfile(): boolean {
-    return this.effectiveRole === 'ORGANIZER' || this.effectiveRole === 'USER' || this.effectiveRole === 'ADMIN';
-  }
 
   // Logout method
   logout(): void {
-    this.auth.logout();
+    this.authService.logout();
     this.router.navigate(['/']);
   }
 }

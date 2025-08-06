@@ -3,27 +3,25 @@
   <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
 
   <div *ngIf="team; else loadingOrNotFound">
-    <h2>Team Details: {{ team.name }}</h2>
+    <div class="header-section">
+      <button (click)="goBackToList()" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+        Back to List
+      </button>
+      <h2>Team Details: {{ team.name }}</h2>
+    </div>
 
     <!-- Display mode -->
     <div *ngIf="!isEditing" class="details-card">
       <p><strong>Name:</strong> {{ team.name }}</p>
       <p><strong>Description:</strong> {{ team.description || 'N/A' }}</p>
-      <p><strong>Created By:</strong> {{ team.createdBy }}</p>
+      <p><strong>Created By:</strong> {{ team.createdByUsername }}</p>
       <p><strong>Created At:</strong> {{ team.createdAt | date:'medium' }}</p>
 
       <div class="button-group">
         <button *ngIf="isOrganizer" (click)="toggleEditMode()" class="edit-button">
           <mat-icon>edit</mat-icon>
           Edit Team
-        </button>
-        <button class="navigate-button" (click)="navigateToMatchParticipants('sample-match-id')">
-          <mat-icon>sports_soccer</mat-icon>
-          View Match Participants (Sample)
-        </button>
-        <button (click)="goBackToList()" class="back-button">
-          <mat-icon>arrow_back</mat-icon>
-          Back to List
         </button>
       </div>
     </div>
@@ -67,7 +65,7 @@
         <mat-icon>admin_panel_settings</mat-icon>
         Team Management
       </h3>
-      
+
       <div class="management-cards">
         <!-- Invite Players Card -->
         <div class="management-card">
@@ -155,15 +153,26 @@
       <div *ngIf="teamMembers.length === 0" class="no-members-message">No members in this team yet.</div>
       <div *ngFor="let member of teamMembers" class="member-card">
         <div class="member-info">
-          <p><strong>Name:</strong> {{ getUserForTeamMember(member.userId)?.username || 'Unknown User' }}</p>
-          <p><strong>Email:</strong> {{ getUserForTeamMember(member.userId)?.email || 'N/A' }}</p>
+          <p><strong>Name:</strong> {{ member.username || 'Unknown User' }}</p>
+          <p><strong>Email:</strong> {{ member.email || 'N/A' }}</p>
           <p><strong>Role:</strong> {{ member.role }}</p>
-          <p><strong>Status:</strong> {{ member.status }}</p>
         </div>
-        <button *ngIf="isOrganizer" (click)="removeTeamMember(member.id)" class="remove-button">
-          <mat-icon>remove_circle</mat-icon>
-          Remove
-        </button>
+        <div class="member-actions" *ngIf="isOrganizer">
+          <!-- Make Organizer button - only show for regular members -->
+          <button *ngIf="canMakeOrganizer(member)" 
+                  (click)="makeOrganizer(member)" 
+                  class="make-organizer-button">
+            <mat-icon>admin_panel_settings</mat-icon>
+            Make Organizer
+          </button>
+          <!-- Remove button - only show for non-organizer members -->
+          <button *ngIf="canRemoveMember(member)" 
+                  (click)="removeTeamMember(member.id)" 
+                  class="remove-button">
+            <mat-icon>remove_circle</mat-icon>
+            Remove
+          </button>
+        </div>
       </div>
     </div>
 
@@ -172,4 +181,12 @@
   <ng-template #loadingOrNotFound>
     <div class="loading-state">Loading team details or Team not found...</div>
   </ng-template>
+
+  <!-- Confirmation Dialog -->
+  <app-confirmation-dialog 
+    *ngIf="showConfirmationDialog"
+    [data]="confirmationDialogData"
+    (confirmed)="onConfirmationConfirmed()"
+    (cancelled)="onConfirmationCancelled()">
+  </app-confirmation-dialog>
 </div>

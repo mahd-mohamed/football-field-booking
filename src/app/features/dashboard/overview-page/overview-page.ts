@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CommonModule } from '@angular/common';
-import { Auth } from '../../../core/services/auth';
-import { Team } from '../../../core/services/team';
+import { AuthService } from '../../../core/services/auth.service';
+import { TeamService } from '../../../core/services/team.service';
 import { AdminDashboardComponent } from '../admin-dashboard/admin-dashboard';
 import { UnifiedDashboardComponent } from '../unified-dashboard/unified-dashboard';
 
@@ -26,8 +26,8 @@ export class OverviewComponent implements OnInit {
   userTeams: any[] = [];
 
   constructor(
-    private auth: Auth,
-    private teamService: Team
+    private auth: AuthService,
+    private teamService: TeamService
   ) {
     this.role = this.auth.getCurrentUser()?.role;
   }
@@ -40,7 +40,7 @@ export class OverviewComponent implements OnInit {
     const currentUser = this.auth.getCurrentUser();
     if (currentUser) {
       // Load teams created by the current user
-      this.teamService.getTeamsByCreator(currentUser.id).subscribe({
+      this.teamService.getTeamsByCreator().subscribe({
         next: (teams) => {
           this.userTeams = teams;
           // Check if user is organizer in any team
@@ -53,10 +53,10 @@ export class OverviewComponent implements OnInit {
     }
   }
 
-  private checkIfUserIsOrganizer(userId: number): void {
+  private checkIfUserIsOrganizer(userId: string): void {
     // Check if user is organizer in any team
-    const checkPromises = this.userTeams.map(team => 
-      this.teamService.isUserTeamOrganizer(userId, team.id).toPromise()
+    const checkPromises = this.userTeams.map(team =>
+      this.teamService.isUserTeamOrganizer(team.id).toPromise()
     );
 
     Promise.all(checkPromises).then(results => {
@@ -73,14 +73,13 @@ export class OverviewComponent implements OnInit {
   }
 
   get shouldShowUnifiedDashboard(): boolean {
-    return this.role === 'PLAYER' || this.role === 'ORGANIZER' || this.isOrganizerInAnyTeam;
+    return this.role === 'USER' 
   }
 
   // Get effective role for dashboard display
   get effectiveRole(): string {
     if (this.role === 'ADMIN') return 'ADMIN';
-    if (this.role === 'ORGANIZER' || this.isOrganizerInAnyTeam) return 'ORGANIZER';
-    return 'PLAYER';
+    return 'USER';
   }
 }
 

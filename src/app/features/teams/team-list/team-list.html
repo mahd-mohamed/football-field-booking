@@ -1,15 +1,43 @@
 <section class="container p-2 ">
   <div class="content-wrapper">
+    <!-- Debug Information -->
+    <!-- <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; font-size: 12px;">
+      <strong>Debug Info:</strong><br>
+      Component Loaded: ✓<br>
+      isLoading: {{ isLoading }}<br>
+      teams.length: {{ teams.length }}<br>
+      errorMessage: {{ errorMessage || 'none' }}<br>
+      successMessage: {{ successMessage || 'none' }}
+    </div> -->
+
     <!-- Header Section -->
     <div class="team-header">
       <div class="header-content">
-        <h1>My Teams</h1>
-        <p>Create and manage your football teams</p>
+        <h1>{{ teamViewFilter === 'MY_TEAMS' ? 'My Teams' : 'Other Teams' }}</h1>
+        <p>{{ teamViewFilter === 'MY_TEAMS' ? 'Create and manage your football teams' : 'Discover and join football teams' }}</p>
       </div>
-      <button mat-raised-button color="primary" (click)="goToCreateTeam()" class="create-team-btn">
-        <mat-icon>add</mat-icon>
-        Create Team
-      </button>
+      <div class="header-actions">
+        <!-- Create Team Button (only for My Teams view) -->
+        <button 
+          *ngIf="teamViewFilter === 'MY_TEAMS'"
+          mat-raised-button 
+          color="primary" 
+          (click)="goToCreateTeam()" 
+          class="create-team-btn">
+          <mat-icon>add</mat-icon>
+          Create Team
+        </button>
+        <!-- Team View Filter -->
+        <mat-form-field appearance="outline" class="team-filter">
+          <mat-label>View</mat-label>
+          <mat-select 
+            [value]="teamViewFilter" 
+            (selectionChange)="onTeamViewFilterChange($event.value)">
+            <mat-option value="MY_TEAMS">My Teams</mat-option>
+            <mat-option value="OTHER_TEAMS">Other Teams</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
     </div>
 
     <div class="main-content-area mb-2 ">
@@ -21,22 +49,61 @@
       </div>
 
       <div *ngIf="teams.length === 0; else teamListContent" class="no-teams-message">
-        <p>You haven't created any teams yet. Click the plus icon to create your first team!</p>
-        <p class="team-count">Teams created: {{ teams.length }}</p>
+        <mat-icon class="no-teams-icon">groups</mat-icon>
+        <p *ngIf="teamViewFilter === 'MY_TEAMS'">You haven't created any teams yet. Click the plus icon to create your first team!</p>
+        <p *ngIf="teamViewFilter === 'OTHER_TEAMS'">No other teams are currently available to join.</p>
+        <p class="team-count">Teams found: {{ teams.length }}</p>
       </div>
 
       <ng-template #teamListContent>
         <mat-card *ngFor="let team of teams" class="team-card-item" (click)="goToTeamDetails(team.id)" appearance="outlined">
           <mat-card-header>
-            <mat-card-title class="team-item-name">{{ team.name }}</mat-card-title>
-            <mat-card-subtitle class="team-item-description">{{ team.description || 'No description provided.' }}</mat-card-subtitle>
+            <div class="team-header-content">
+              <div class="team-title-section">
+                <mat-card-title class="team-item-name">{{ team.name }}</mat-card-title>
+                <div class="role-indicator" *ngIf="getUserRole(team.id)">
+                  <mat-icon 
+                    [title]="getUserRole(team.id) === 'ORGANIZER' ? 'You are an Organizer' : 'You are a Member'"
+                    [class]="getUserRole(team.id) === 'ORGANIZER' ? 'organizer-icon' : 'member-icon'">
+                    {{ getUserRole(team.id) === 'ORGANIZER' ? 'star' : 'person' }}
+                  </mat-icon>
+                  <span class="role-text">{{ getUserRole(team.id) === 'ORGANIZER' ? 'Organizer' : 'Member' }}</span>
+                </div>
+              </div>
+              <mat-card-subtitle class="team-item-description">{{ team.description || 'No description provided.' }}</mat-card-subtitle>
+            </div>
           </mat-card-header>
           <mat-card-actions align="end">
-            <button *ngIf="isTeamOrganizer(team)" mat-button class="delete-button" (click)="deleteTeam(team.id); $event.stopPropagation()">Delete</button>
+            <!-- My Teams View: Show delete button for organizers -->
+            <button 
+              *ngIf="teamViewFilter === 'MY_TEAMS' && getUserRole(team.id) === 'ORGANIZER'" 
+              mat-button 
+              class="delete-button" 
+              (click)="deleteTeam(team.id); $event.stopPropagation()">
+              Delete
+            </button>
+            
+            <!-- Other Teams View: Show join button for non-members -->
+            <button 
+              *ngIf="teamViewFilter === 'OTHER_TEAMS' && !isTeamMember(team)" 
+              mat-button 
+              class="join-button"
+              [disabled]="isRequestingJoin[team.id] || isJoinDisabled(team)"
+              (click)="requestToJoinTeam(team.id, $event)">
+              {{ getJoinButtonText(team) }}
+            </button>
           </mat-card-actions>
         </mat-card>
       </ng-template>
     </div>
 
-    </div>
+  </div>
+
+  <!-- Confirmation Dialog -->
+  <app-confirmation-dialog 
+    *ngIf="showConfirmationDialog"
+    [data]="confirmationDialogData"
+    (confirmed)="onConfirmationConfirmed()"
+    (cancelled)="onConfirmationCancelled()">
+  </app-confirmation-dialog>
 </section>

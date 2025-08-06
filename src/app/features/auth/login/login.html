@@ -1,32 +1,89 @@
-<div class="container d-flex justify-content-center align-items-center min-vh-100">
-  <div class="card shadow-lg p-4 p-md-5 w-100" style="max-width: 450px;">
-    <h2 class="card-title text-center mb-4 fs-3 fw-bold">Login</h2>
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <div class="mb-3 text-start">
-        <label for="email" class="form-label">Email</label>
-        <input type="email" id="email" formControlName="email" class="form-control" placeholder="Enter your email">
-        <div *ngIf="loginForm.get('email')?.invalid && (loginForm.get('email')?.dirty || loginForm.get('email')?.touched)" class="text-danger mt-1 small">
-          <div *ngIf="loginForm.get('email')?.errors?.['required']">Email is required.</div>
-          <div *ngIf="loginForm.get('email')?.errors?.['email']">Invalid email.</div>
+<div class="auth-container">
+  <div class="background-overlay"></div>
+  <div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="glass-card animate-fade-in">
+      <div class="card-header text-center mb-4">
+        <!-- <div class="logo-container mb-3">
+          <img src="/assets/logo.png" alt="Logo" class="auth-logo" onerror="this.style.display='none'">
+        </div> -->
+        <h2 class="card-title mb-2">Welcome Back</h2>
+        <p class="text-muted">Sign in to your account</p>
+      </div>
+      
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+        <div class="form-group mb-4">
+          <div class="input-wrapper">
+            <i class="fas fa-envelope input-icon"></i>
+            <input 
+              type="email" 
+              id="email" 
+              formControlName="email" 
+              class="form-control glass-input" 
+              placeholder="Enter your email"
+              autocomplete="email">
+          </div>
+          @if (loginForm.get('email')?.invalid && (loginForm.get('email')?.dirty || loginForm.get('email')?.touched)) {
+            <div class="error-message">
+              @if (loginForm.get('email')?.errors?.['required']) {
+                <div>Email is required.</div>
+              }
+              @if (loginForm.get('email')?.errors?.['email']) {
+                <div>Invalid email format.</div>
+              }
+            </div>
+          }
         </div>
-      </div>
-      <div class="mb-4 text-start">
-        <label for="password" class="form-label">Password</label>
-        <input type="password" id="password" formControlName="password" class="form-control" placeholder="Enter password">
-        <div *ngIf="loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)" class="text-danger mt-1 small">
-          <div *ngIf="loginForm.get('password')?.errors?.['required']">Password is required.</div>
-          <div *ngIf="loginForm.get('password')?.errors?.['minlength']">Must be at least 6 characters.</div>
+        
+        <div class="form-group mb-4">
+          <div class="input-wrapper">
+            <i class="fas fa-lock input-icon"></i>
+            <input 
+              type="password" 
+              id="password" 
+              formControlName="password" 
+              class="form-control glass-input" 
+              placeholder="Enter password"
+              autocomplete="current-password">
+          </div>
+          @if (loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)) {
+            <div class="error-message">
+              @if (loginForm.get('password')?.errors?.['required']) {
+                <div>Password is required.</div>
+              }
+              @if (loginForm.get('password')?.errors?.['minlength']) {
+                <div>Must be at least 6 characters.</div>
+              }
+            </div>
+          }
         </div>
-      </div>
 
-      <div *ngIf="errorMessage" class="alert alert-danger text-center small" role="alert">
-        {{ errorMessage }}
-      </div>
+        @if (errorMessage) {
+          <div class="alert alert-danger glass-alert" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {{ errorMessage }}
+          </div>
+        }
 
-      <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" [disabled]="loginForm.invalid">Login</button>
-    </form>
-    <p class="text-center mt-4 mb-0 text-muted small">
-      Don't have an account? <a routerLink="/register" class="text-decoration-none fw-semibold">Register Now</a>
-    </p>
+        <button 
+          type="submit" 
+          class="btn btn-success glass-btn w-100" 
+          [disabled]="loginForm.invalid || isLoading">
+          @if (!isLoading) {
+            <span>Sign In</span>
+          }
+          @if (isLoading) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            <span>Signing In...</span>
+          }
+        </button>
+      </form>
+      
+      <div class="auth-footer text-center mt-4">
+        <p class="text-muted mb-0">
+          Don't have an account? 
+          <a routerLink="/register" class="text-decoration-none fw-semibold link-hover">Sign Up</a>
+        </p>
+      </div>
+    </div>
   </div>
 </div>

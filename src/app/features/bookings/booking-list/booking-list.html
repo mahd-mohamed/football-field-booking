@@ -27,63 +27,153 @@
 
   <!-- Bookings Content -->
   <div *ngIf="!isLoading" class="bookings-content">
-    <div class="tab-content">
-      <div *ngIf="upcomingBookings.length === 0" class="no-bookings">
-        <mat-icon>event_busy</mat-icon>
-        <h3>No Upcoming Bookings</h3>
-        <p>You don't have any upcoming bookings. Create a new booking to get started!</p>
-        <button mat-raised-button color="primary" (click)="createNewBooking()">
-          Create Booking
-        </button>
-      </div>
 
-      <div *ngIf="upcomingBookings.length > 0" class="bookings-grid">
-        <mat-card *ngFor="let booking of upcomingBookings" [class]="getBookingCardClass(booking)" class="booking-card">
-          <mat-card-header>
-            <mat-card-title>{{ booking.place_name }}</mat-card-title>
-            <mat-card-subtitle>{{ booking.team_name }}</mat-card-subtitle>
-            <mat-chip [color]="getStatusColor(booking.status)" selected class="status-chip">
-              {{ getStatusText(booking.status) }}
-            </mat-chip>
-          </mat-card-header>
-
-          <mat-card-content>
-            <div class="booking-details">
-              <div class="detail-item">
-                <mat-icon>event</mat-icon>
-                <span>{{ formatDate(booking.start_time) }}</span>
-              </div>
-              <div class="detail-item">
-                <mat-icon>schedule</mat-icon>
-                <span>{{ formatDateTime(booking.start_time, booking.end_time) }}</span>
-              </div>
-              <div class="detail-item">
-                <mat-icon>location_on</mat-icon>
-                <span>{{ booking.place_name }}</span>
-              </div>
-            </div>
-          </mat-card-content>
-
-          <mat-card-actions align="end">
-            <button mat-button color="primary" (click)="viewBookingDetails(booking)">
-              <mat-icon>visibility</mat-icon>
-              View Details
-            </button>
-            <button mat-button color="accent" (click)="viewMatchParticipants(booking)">
-              <mat-icon>group</mat-icon>
-              View Participants
-            </button>
-            <button 
-              *ngIf="canCancelBooking(booking)" 
-              mat-button 
-              color="warn" 
-              (click)="cancelBooking(booking)">
-              <mat-icon>cancel</mat-icon>
-              Cancel
-            </button>
-          </mat-card-actions>
-        </mat-card>
-      </div>
+    <!-- UPCOMING BOOKINGS SECTION -->
+    <h2 class="section-title">Upcoming Bookings</h2>
+    <div *ngIf="upcomingBookings.length === 0" class="no-bookings">
+      <mat-icon>event_busy</mat-icon>
+      <h3>No Upcoming Bookings</h3>
+      <p>You don't have any upcoming bookings. Create a new booking to get started!</p>
     </div>
+
+    <div *ngIf="upcomingBookings.length > 0" class="bookings-grid">
+      <mat-card *ngFor="let booking of upcomingBookings" class="booking-card">
+        <mat-card-header>
+          <mat-card-title>{{ booking.teamName }}</mat-card-title>
+          <mat-chip [color]="getStatusColor(booking.status)" selected class="status-chip">
+            {{ getStatusText(booking.status) }}
+          </mat-chip>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="booking-details">
+            <div class="detail-item">
+              <mat-icon>event</mat-icon>
+              <span>{{ formatDate(booking.startTime) }}</span>
+            </div>
+            <div class="detail-item">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ formatDateTime(booking.startTime, booking.endTime) }}</span>
+            </div>
+            <div class="detail-item">
+              <mat-icon>location_on</mat-icon>
+              <span>{{ booking.placeName }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions align="end">
+          <button mat-button color="primary" (click)="viewBookingDetails(booking)">
+            <mat-icon>visibility</mat-icon>
+            View Details
+          </button>
+          <button mat-button color="accent" (click)="inviteParticipants(booking)">
+            <mat-icon>group_add</mat-icon>
+            Invite Participants
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+
+    <!-- OLD BOOKINGS SECTION -->
+    <h2 class="section-title old-bookings-title">Past & Current Bookings</h2>
+    <div *ngIf="oldBookings.length === 0" class="no-bookings">
+      <mat-icon>history</mat-icon>
+      <h3>No Old Bookings</h3>
+      <p>You haven't made any past bookings yet.</p>
+    </div>
+
+    <div *ngIf="oldBookings.length > 0" class="bookings-grid old-bookings-grid">
+      <mat-card *ngFor="let booking of oldBookings" class="booking-card old-booking-card">
+        <mat-card-header>
+          <mat-card-title>{{ booking.teamName }}</mat-card-title>
+        </mat-card-header>
+      
+        <mat-card-content>
+          <div class="booking-details">
+            <div class="detail-item">
+              <mat-icon>event</mat-icon>
+              <span>{{ formatDate(booking.startTime) }}</span>
+            </div>
+            <div class="detail-item">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ formatDateTime(booking.startTime, booking.endTime) }}</span>
+            </div>
+            <div class="detail-item">
+              <mat-icon>location_on</mat-icon>
+              <span>{{ booking.placeName }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      
+        <mat-card-actions align="end">
+          <button mat-button color="primary" (click)="viewBookingDetails(booking)">
+            <mat-icon>visibility</mat-icon>
+            View Details
+          </button>
+          <button mat-button color="accent" (click)="viewMatchParticipants(booking)">
+            <mat-icon>group</mat-icon>
+            View Participants
+          </button>
+        </mat-card-actions>
+      
+        <!-- ✅ Participants modal below the card -->
+        <div *ngIf="expandedBookingId === booking.id && selectedParticipants.length > 0" class="participants-modal">
+          <h3>Match Participants</h3>
+          <ul>
+            <li *ngFor="let p of selectedParticipants">
+              <mat-icon>person</mat-icon> {{ p.username }}
+              <span class="status">({{ p.status }})</span>
+            </li>
+          </ul>
+          <button mat-button color="warn" (click)="closeParticipants()">Close</button>
+        </div>
+      </mat-card>
+
+    </div>
+
+    <!-- CANCELLED BOOKINGS SECTION -->
+    <h2 class="section-title cancelled-bookings-title">Cancelled Bookings</h2>
+    <div *ngIf="cancelledBookings.length === 0" class="no-bookings">
+      <mat-icon>cancel</mat-icon>
+      <h3>No Cancelled Bookings</h3>
+      <p>You haven't cancelled any bookings yet.</p>
+    </div>
+
+    <div *ngIf="cancelledBookings.length > 0" class="bookings-grid cancelled-bookings-grid">
+      <mat-card *ngFor="let booking of cancelledBookings" class="booking-card cancelled-booking-card">
+        <mat-card-header>
+          <mat-card-title>{{ booking.teamName }}</mat-card-title>
+          <mat-chip color="warn" selected class="status-chip">
+            Cancelled
+          </mat-chip>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="booking-details">
+            <div class="detail-item">
+              <mat-icon>event</mat-icon>
+              <span>{{ formatDate(booking.startTime) }}</span>
+            </div>
+            <div class="detail-item">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ formatDateTime(booking.startTime, booking.endTime) }}</span>
+            </div>
+            <div class="detail-item">
+              <mat-icon>location_on</mat-icon>
+              <span>{{ booking.placeName }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions align="end">
+          <button mat-button color="primary" (click)="viewBookingDetails(booking)">
+            <mat-icon>visibility</mat-icon>
+            View Details
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+
   </div>
-</div> 
+</div>

@@ -8,15 +8,14 @@ import { EventDetailsDialogComponent, EventDetailsData } from './event-details-d
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FullCalendarModule } from '@fullcalendar/angular';
-import { CalendarOptions, EventClickArg, EventApi } from '@fullcalendar/core';
+import { CalendarOptions, EventClickArg } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { BookingService } from '../../../core/services/booking';
-import { Match, IBookingMatch } from '../../../core/services/match';
-import { Team, ITeam } from '../../../core/services/team';
-import { Place, PlaceModel } from '../../../core/services/place';
-import { Auth } from '../../../core/services/auth';
+import { BookingService, IBooking } from '../../../core/services/booking.service';
+import { MatchParticipantService, IUserMatch } from '../../../core/services/match-participant.service';
+import { PlaceService } from '../../../core/services/place.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-calendar-view',
@@ -36,10 +35,9 @@ import { Auth } from '../../../core/services/auth';
 })
 export class CalendarViewComponent implements OnInit {
   private bookingService = inject(BookingService);
-  private matchService = inject(Match);
-  private teamService = inject(Team);
-  private placeService = inject(Place);
-  private authService = inject(Auth);
+  private matchService = inject(MatchParticipantService);
+  private placeService = inject(PlaceService);
+  private authService = inject(AuthService);
   private dialog = inject(MatDialog);
 
   calendarOptions: CalendarOptions = {
@@ -59,7 +57,6 @@ export class CalendarViewComponent implements OnInit {
     weekends: true,
     events: [],
     eventClick: this.handleEventClick.bind(this),
-    eventColor: '#1976d2',
     eventTextColor: '#ffffff',
     eventDisplay: 'block',
     eventTimeFormat: {
@@ -73,159 +70,161 @@ export class CalendarViewComponent implements OnInit {
     this.loadCalendarEvents();
   }
 
+private async loadCalendarEvents() {
+  try {
+    const currentUser = this.authService.getCurrentUser();
 
+    const [allBookings, participantMatches, myMatchesAsOrganizer, places] = await Promise.all([
+      this.bookingService.getBookings().toPromise(),
+      this.matchService.getUserParticipatedMatches().toPromise(),
+      this.bookingService.getMyMatchesAsOrganizer().toPromise(),
+      this.placeService.getAllPlaces().toPromise()
+    ]);
 
-  private async loadCalendarEvents() {
-    try {
-      // Get current user
-      const currentUser = this.authService.getCurrentUser();
-      
-      // Get real data from services
-      let bookingsObservable;
-      if (currentUser) {
-        console.log('Getting bookings for user ID:', currentUser.id);
-        // Use the same method as booking-list component
-        bookingsObservable = this.bookingService.getUpcomingBookings(currentUser.id);
-      } else {
-        console.log('No user logged in, getting all bookings');
-        bookingsObservable = this.bookingService.getBookings();
-      }
-      
-      const [bookings, matches, places] = await Promise.all([
-        bookingsObservable.toPromise(),
-        this.matchService.getBookingMatches().toPromise(),
-        Promise.resolve(this.placeService.getAllPlaces())
-      ]);
+    const safePlaces = Array.isArray(places) ? places : [];
+    const events: any[] = [];
 
-      console.log('Calendar loading real data:');
-      console.log('Current User ID:', currentUser?.id);
-      console.log('Bookings found:', bookings?.length || 0);
-      console.log('Matches found:', matches?.length || 0);
-      console.log('Places found:', places?.length || 0);
+    // ✅ 1. My Organizer Bookings (Green) - skipping CANCELLED
+    const myOrganizerBookingIds = new Set<string>();
+    if (Array.isArray(myMatchesAsOrganizer)) {
+      for (const booking of myMatchesAsOrganizer) {
+        if (booking.status === 'CANCELLED') continue;
 
-      const events: any[] = [];
+        const place = safePlaces.find(p => p.id.toString() === booking.placeId?.toString());
 
-      // 1. Booked Pitches (from BookingService)
-      console.log('Loading bookings:', bookings);
-      if (bookings && Array.isArray(bookings)) {
-        bookings.forEach((booking: any) => {
-          const place = places.find(p => p.id.toString() === booking.place_id?.toString());
-          console.log('Processing booking:', booking, 'Place:', place);
-          events.push({
-            id: `booking-${booking.id}`,
-            title: `Booking: ${place?.name || 'Pitch'}`,
-            start: booking.start_time,
-            end: booking.end_time,
-            backgroundColor: '#4caf50',
-            borderColor: '#4caf50',
-            textColor: '#ffffff',
-            extendedProps: {
-              type: 'booking',
-              data: {
-                ...booking,
-                placeName: place?.name || 'Pitch',
-                location: place?.location || 'Unknown Location'
-              }
+        let teamName = booking.teamName;
+        if (!teamName) {
+          const fallback = allBookings?.find(b => b.id === booking.id);
+          teamName = fallback?.teamName || 'Team';
+        }
+
+        const bookerName = booking.userName && booking.userName !== 'User'
+          ? booking.userName
+          : (currentUser?.username || 'Unknown User');
+
+        myOrganizerBookingIds.add(booking.id);
+
+        events.push({
+          id: `booking-${booking.id}`,
+          title: `Booking: ${teamName}`,
+          start: booking.startTime,
+          end: booking.endTime,
+          backgroundColor: '#4caf50',
+          borderColor: '#4caf50',
+          textColor: '#ffffff',
+          extendedProps: {
+            type: 'booking',
+            data: {
+              ...booking,
+              teamName,
+              userName: bookerName,
+              status: booking.status || 'CONFIRMED',
+              placeName: place?.name || 'Pitch',
+              location: place?.location || 'Unknown Location'
             }
-          });
+          }
         });
       }
+    }
 
-      // 2. Upcoming Matches (from BookingMatch)
-      console.log('Loading matches:', matches);
-      if (matches && Array.isArray(matches)) {
-        matches.forEach((match: IBookingMatch) => {
-          const place = places.find(p => p.id.toString() === match.placeId?.toString());
-          const team = this.getTeamById(match.teamId);
-          console.log('Processing match:', match, 'Place:', place, 'Team:', team);
-          
-          events.push({
-            id: `match-${match.id}`,
-            title: `Match: ${team?.name || 'Team'} vs ${match.description || 'Opponent'}`,
-            start: `${match.matchDate}T${match.startTime}`,
-            end: `${match.matchDate}T${match.endTime}`,
-            backgroundColor: '#ff9800',
-            borderColor: '#ff9800',
-            textColor: '#ffffff',
-            extendedProps: {
-              type: 'match',
-              data: {
-                ...match,
-                placeName: place?.name || 'Pitch',
-                location: place?.location || 'Unknown Location',
-                teamName: team?.name || 'Team',
-                description: match.description || 'Match'
-              }
+    // ✅ 2. All Other Bookings (Gray) - skipping CANCELLED
+    if (Array.isArray(allBookings)) {
+      for (const booking of allBookings) {
+        if (myOrganizerBookingIds.has(booking.id)) continue;
+        if (booking.status === 'CANCELLED') continue;
+
+        const place = safePlaces.find(p => p.id.toString() === booking.placeId?.toString());
+
+        events.push({
+          id: `booking-${booking.id}`,
+          title: `Booking: ${booking.teamName || 'Team'}`,
+          start: booking.startTime,
+          end: booking.endTime,
+          backgroundColor: '#96ac1dff',
+          borderColor: '#9e9e9e',
+          textColor: '#ffffff',
+          extendedProps: {
+            type: 'booking',
+            data: {
+              ...booking,
+              status: booking.status || 'CONFIRMED',
+              placeName: place?.name || 'Pitch',
+              location: place?.location || 'Unknown Location'
             }
-          });
+          }
         });
       }
-
-      this.calendarOptions.events = events;
-      
-      // Update statistics in real-time
-      this.updateStatistics(events);
-    } catch (error) {
-      console.error('Error loading calendar events:', error);
     }
-  }
 
-  private updateStatistics(events: any[]) {
-    const bookingCount = events.filter(e => e.extendedProps.type === 'booking').length;
-    const matchCount = events.filter(e => e.extendedProps.type === 'match').length;
-    
-    // Update DOM elements
-    setTimeout(() => {
-      const bookingElement = document.getElementById('booking-count');
-      const matchElement = document.getElementById('match-count');
-      
-      if (bookingElement) bookingElement.textContent = bookingCount.toString();
-      if (matchElement) matchElement.textContent = matchCount.toString();
-    }, 100);
-  }
+    // // ✅ 3. Matches as Participant (Orange) - skipping CANCELLED
+    // if (Array.isArray(participantMatches)) {
+    //   const detailedMatches = await Promise.all(
+    //     participantMatches.map(async (match: IUserMatch) => {
+    //       if (match.bookingStatus === 'CANCELLED') return undefined;
 
-  private getTeamById(teamId: string): any {
-    try {
-      const teamsString = localStorage.getItem('teams');
-      if (teamsString) {
-        const teams = JSON.parse(teamsString);
-        return teams.find((team: any) => team.id === teamId) || null;
-      }
-      return null;
-    } catch (error) {
-      console.error('Error loading team by ID:', error);
-      return null;
-    }
+    //       try {
+    //         const detailedBooking = await this.bookingService.getBookingDetailsById(match.matchId).toPromise();
+    //         if (detailedBooking?.status === 'CANCELLED') return undefined;
+
+    //         const place = safePlaces.find(
+    //           p => p.id.toString() === (match.placeId?.toString() || detailedBooking?.placeId?.toString())
+    //         );
+
+    //         return {
+    //           ...match,
+    //           placeName: place?.name || detailedBooking?.placeName || 'Pitch',
+    //           location: place?.location || detailedBooking?.placeName || 'Unknown Location',
+    //           startTime: detailedBooking?.startTime || match.startTime,
+    //           endTime: detailedBooking?.endTime || match.endTime,
+    //           bookingStatus: detailedBooking?.status || match.bookingStatus || 'PENDING_PLAYERS',
+    //           teamName: match.teamName || detailedBooking?.teamName || 'Team'
+    //         } as IUserMatch & { location: string };
+    //       } catch {
+    //         return {
+    //           ...match,
+    //           placeName: 'Pitch',
+    //           location: 'Unknown Location',
+    //           bookingStatus: 'PENDING_PLAYERS'
+    //         } as IUserMatch & { location: string };
+    //       }
+    //     })
+    //   );
+
+    //   (detailedMatches.filter((m): m is IUserMatch & { location: string } => m !== undefined))
+    //     .forEach(enrichedMatch => {
+    //       events.push({
+    //         id: `match-${enrichedMatch.matchId}`,
+    //         title: `Match: ${enrichedMatch.teamName}`,
+    //         start: enrichedMatch.startTime,
+    //         end: enrichedMatch.endTime,
+    //         backgroundColor: '#ff9800',
+    //         borderColor: '#ff9800',
+    //         textColor: '#ffffff',
+    //         extendedProps: {
+    //           type: 'match',
+    //           data: enrichedMatch
+    //         }
+    //       });
+    //     });
+    // }
+
+    this.calendarOptions.events = events;
+
+  } catch (error) {
+    console.error('Error loading calendar events:', error);
+    this.calendarOptions.events = [];
   }
+}
 
   private handleEventClick(info: EventClickArg) {
-    const event = info.event;
-    const eventData = event.extendedProps as any;
-    
-    if (eventData['type'] === 'booking') {
-      this.showBookingDetails(eventData['data']);
-    } else if (eventData['type'] === 'match') {
-      this.showMatchDetails(eventData['data']);
-    }
-  }
+    const eventData = info.event.extendedProps as any;
 
-  private showBookingDetails(booking: any) {
-    const dialogRef = this.dialog.open(EventDetailsDialogComponent, {
+    this.dialog.open(EventDetailsDialogComponent, {
       width: '600px',
-      data: { type: 'booking', data: booking } as EventDetailsData
+      data: {
+        type: eventData['type'],
+        data: eventData['data']
+      } as EventDetailsData
     });
   }
-
-  private showMatchDetails(match: any) {
-    const dialogRef = this.dialog.open(EventDetailsDialogComponent, {
-      width: '600px',
-      data: { type: 'match', data: match } as EventDetailsData
-    });
-  }
-
-
-
-
-
-
-} 
+}

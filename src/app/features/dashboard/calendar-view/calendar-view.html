@@ -7,7 +7,7 @@
           <i class="fas fa-calendar-alt me-2"></i>
           Comprehensive Calendar
         </h2>
-        <p class="text-muted">View booked pitches and upcoming matches</p>
+        <p class="text-muted">View all matches including yours and others</p>
       </div>
     </div>
   </div>
@@ -17,15 +17,23 @@
     <div class="row">
       <div class="col-12">
         <div class="legend-container">
+          <!-- 🟠 My Organized Matches -->
           <div class="legend-item">
-            <div class="legend-color booking-color"></div>
-            <span class="legend-text">Booked Pitches</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color match-color"></div>
-            <span class="legend-text">Upcoming Matches</span>
+            <div class="legend-color organized-color"></div>
+            <span class="legend-text">My Matches as an Organizer</span>
           </div>
 
+          <!-- 🟢 Matches I Will Participate In -->
+          <div class="legend-item">
+            <div class="legend-color participant-color"></div>
+            <span class="legend-text">My Matches as a Player</span>
+          </div>
+
+          <!-- ⚪ Other Matches -->
+          <div class="legend-item">
+            <div class="legend-color other-color"></div>
+            <span class="legend-text">Other Matches</span>
+          </div>
         </div>
       </div>
     </div>
@@ -39,37 +47,4 @@
       </div>
     </mat-card-content>
   </mat-card>
-
-  <!-- Quick Stats -->
-  <div class="quick-stats mt-4">
-    <div class="row">
-      <div class="col-md-4">
-        <mat-card class="stat-card booking-stat">
-          <mat-card-content>
-            <div class="stat-content">
-              <i class="fas fa-calendar-check stat-icon"></i>
-              <div class="stat-info">
-                <h3 class="stat-number" id="booking-count">0</h3>
-                <p class="stat-label">Booked Pitches</p>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-      <div class="col-md-4">
-        <mat-card class="stat-card match-stat">
-          <mat-card-content>
-            <div class="stat-content">
-              <i class="fas fa-futbol stat-icon"></i>
-              <div class="stat-info">
-                <h3 class="stat-number" id="match-count">0</h3>
-                <p class="stat-label">Upcoming Matches</p>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-    </div>
-  </div>
-</div> 
+</div>

@@ -44,6 +44,21 @@
   font-weight: 500;
 }
 
+/* Header Actions Section */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.team-filter {
+  min-width: 140px;
+}
+
+.team-filter .mat-mdc-form-field-wrapper {
+  padding-bottom: 0 !important;
+}
+
 .create-team-btn {
   background-color: #1976d2;
   border: 1px solid #1976d2;
@@ -101,6 +116,50 @@
     align-items: flex-start; /* Align header content to start */
 }
 
+/* Team header content layout */
+.team-header-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.team-title-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* Role indicator styles */
+.role-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background-color: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.organizer-icon {
+    color: #ffd700 !important; /* Gold color for organizer star */
+    font-size: 1.2rem !important;
+}
+
+.member-icon {
+    color: #1976d2 !important; /* Blue color for member person icon */
+    font-size: 1.2rem !important;
+}
+
+.role-text {
+    color: var(--text-dark);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
 .mat-mdc-card-title {
     font-size: 1.3rem !important;
     font-weight: 600 !important;
@@ -143,14 +202,70 @@
     background-color: #790404 !important;
 }
 
+/* Join button styles (mat-button) */
+.join-button {
+    background-color: var(--primary-teal) !important;
+    color: white !important;
+    padding: 0.4rem 0.8rem !important;
+    border-radius: 0.5rem !important;
+    font-weight: 500 !important;
+    border: none !important; /* Ensure no border */
+    cursor: pointer !important;
+    transition: background-color 0.2s ease-in-out !important;
+    min-width: unset !important; /* Override Material min-width */
+    line-height: 1 !important; /* Adjust line height for button text */
+    height: auto !important; /* Adjust height */
+}
+
+.join-button:hover:not(:disabled) {
+    background-color: #17a085 !important;
+}
+
+.join-button:disabled {
+    background-color: #cccccc !important;
+    color: #666666 !important;
+    cursor: not-allowed !important;
+}
+
 /* No teams message */
 .no-teams-message {
-    text-align: center;
-    padding: 2rem;
-    color: var(--text-medium);
-    background-color: var(--card-bg);
-    border-radius: 1.5rem;
-    box-shadow: 0 5px 15px var(--shadow-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+  padding: 3rem 2rem;
+
+  background-color: var(--card-bg);
+  border: 2px dashed var(--primary-teal); /* Subtle border style */
+  border-radius: 1.5rem;
+
+  box-shadow: 0 8px 20px var(--shadow-light);
+  animation: fadeIn 0.4s ease-out;
+
+  color: var(--text-dark);
+}
+
+.no-teams-message p {
+  margin: 0.5rem 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.no-teams-message .team-count {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: var(--text-light);
+}
+
+.no-teams-icon {
+  font-size: 48px; /* or 3rem */
+  width: 48px;     /* makes sure the icon box fits the glyph */
+  height: 48px;
+  line-height: 1;
+  color: var(--primary-teal);
+  margin-bottom: 1rem;
 }
 
 /* Success and Error message styles */
@@ -216,5 +331,43 @@
     .delete-button {
         padding: 0.3rem 0.6rem !important;
         font-size: 0.75rem !important;
+    }
+    
+    .join-button {
+        padding: 0.3rem 0.6rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    /* Responsive header styles */
+    .team-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .team-filter {
+        min-width: 120px;
+    }
+    
+    /* Responsive role indicator styles */
+    .team-title-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .role-indicator {
+        padding: 0.2rem 0.6rem;
+        font-size: 0.75rem;
+    }
+    
+    .organizer-icon,
+    .member-icon {
+        font-size: 1rem !important;
     }
 }

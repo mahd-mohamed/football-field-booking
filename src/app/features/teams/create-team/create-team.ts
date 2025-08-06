@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common';
 import { Router } from '@angular/router';
-import { Team, ITeam } from '../../../core/services/team'; 
+import { TeamService, ITeam } from '../../../core/services/team.service';
 import { takeUntil ,Subject} from 'rxjs';
-import { Auth } from '../../../core/services/auth';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-create-team',
@@ -18,8 +18,8 @@ export class CreateTeam implements OnInit {
   errorMessage: string | null = null;
   private destroy$ = new Subject<void>();
 
-  
-  constructor(private fb: FormBuilder, private router: Router, private teamService: Team, private authService: Auth) { }
+
+  constructor(private fb: FormBuilder, private router: Router, private teamService: TeamService, private authService: AuthService) { }
 
   ngOnInit(): void {
     // Initialize the form with validators
@@ -47,14 +47,13 @@ export class CreateTeam implements OnInit {
         return;
       }
       // Build team data to send to the service
-      const teamData: Omit<ITeam, 'id' | 'createdAt'> = {
+      const teamData: Omit<ITeam, 'id' | 'createdAt' | 'createdBy' | 'createdByUsername' | 'members'> = {
         name: this.createTeamForm.value.name,
-        description: this.createTeamForm.value.description,
-        createdBy: currentUser.id
+        description: this.createTeamForm.value.description
       };
 
       // Call the createTeam method from the service
-      this.teamService.createTeam(teamData, currentUser.id, currentUser.username, currentUser.email)
+      this.teamService.createTeam(teamData)
         .pipe(takeUntil(this.destroy$)) // Ensure subscription is cleaned up
         .subscribe({
           next: (newTeam) => {
@@ -67,11 +66,9 @@ export class CreateTeam implements OnInit {
               detail: { teamId: newTeam.id, userId: currentUser.id }
             }));
 
-            // Navigate to the team list page after a short delay
-            setTimeout(() => {
-              console.log('Navigating to team list page...');
-              this.router.navigate(['/dashboard/teams']);
-            }, 1500);
+            // Navigate to the team list page immediately
+            console.log('Navigating to team list page...');
+            this.router.navigate(['/dashboard/teams']);
           },
           error: (err) => {
             console.error("Error creating team via service:", err);

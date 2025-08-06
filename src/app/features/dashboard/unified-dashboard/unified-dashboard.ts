@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { Auth } from '../../../core/services/auth';
-import { Team } from '../../../core/services/team';
+import { AuthService } from '../../../core/services/auth.service';
+import { TeamService } from '../../../core/services/team.service';
 
 @Component({
   selector: 'app-unified-dashboard',
@@ -17,8 +17,8 @@ export class UnifiedDashboardComponent implements OnInit {
   currentUser: any;
 
   constructor(
-    private authService: Auth,
-    private teamService: Team
+    private authService: AuthService,
+    private teamService: TeamService
   ) {}
 
   ngOnInit(): void {
@@ -29,7 +29,7 @@ export class UnifiedDashboardComponent implements OnInit {
   private loadUserTeams(): void {
     if (this.currentUser) {
       // Load teams created by the current user
-      this.teamService.getTeamsByCreator(this.currentUser.id).subscribe({
+      this.teamService.getTeamsByCreator().subscribe({
         next: (teams) => {
           this.userTeams = teams;
           this.checkIfUserIsOrganizer();
@@ -45,8 +45,8 @@ export class UnifiedDashboardComponent implements OnInit {
     if (!this.currentUser) return;
 
     // Check if user is organizer in any team
-    const checkPromises = this.userTeams.map(team => 
-      this.teamService.isUserTeamOrganizer(this.currentUser.id, team.id).toPromise()
+    const checkPromises = this.userTeams.map(team =>
+      this.teamService.isUserTeamOrganizer(team.id).toPromise()
     );
 
     Promise.all(checkPromises).then(results => {
@@ -58,13 +58,11 @@ export class UnifiedDashboardComponent implements OnInit {
   }
 
   get userRole(): string {
-    if (this.currentUser?.role === 'ORGANIZER' || this.isOrganizer) {
-      return 'ORGANIZER';
-    }
-    return 'PLAYER';
+
+    return 'USER';
   }
 
   get teamCount(): number {
     return this.userTeams.length;
   }
-} 
+}
