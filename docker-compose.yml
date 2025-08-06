@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  football-booking-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: football-booking-ui
+    restart: unless-stopped
+    ports:
+      - "4200:4200"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - football-booking-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: sh -c "npm start -- --host 0.0.0.0"
+
+networks:
+  football-booking-network:
+    driver: bridge

@@ -5,8 +5,6 @@ import { takeUntil } from 'rxjs/operators';
 import { TeamService } from '../../../core/services/team.service';
 import { TeamMemberService, ITeam, TeamMemberStatus } from '../../../core/services/team-member.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { ErrorHandlerService } from '../../../core/services/error-handler.service';
-import { ConfirmationDialogComponent, ConfirmationDialogData } from '../../../shared/confirmation-dialog/confirmation-dialog';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -26,8 +24,7 @@ import { CommonModule } from '@angular/common';
     MatIconModule,
     MatProgressSpinnerModule,
     MatSelectModule,
-    MatFormFieldModule,
-    ConfirmationDialogComponent
+    MatFormFieldModule
   ]
 })
 export class TeamList implements OnInit, OnDestroy {
@@ -40,23 +37,12 @@ export class TeamList implements OnInit, OnDestroy {
   isRequestingJoin: { [teamId: string]: boolean } = {};
   userRoleMap: { [teamId: string]: 'ORGANIZER' | 'MEMBER' | null } = {};
   teamViewFilter: 'MY_TEAMS' | 'OTHER_TEAMS' = 'MY_TEAMS';
-  
-  // Confirmation dialog properties
-  showConfirmationDialog: boolean = false;
-  confirmationDialogData: ConfirmationDialogData = {
-    title: '',
-    message: '',
-    type: 'warning'
-  };
-  pendingDeleteTeamId: string | null = null;
-  
   private destroy$ = new Subject<void>();
 
   constructor(
     private teamService: TeamService,
     private teamMemberService: TeamMemberService,
     private authService: AuthService,
-    private errorHandler: ErrorHandlerService,
     private router: Router
   ) {
     const user = this.authService.getCurrentUser();
@@ -82,14 +68,11 @@ export class TeamList implements OnInit, OnDestroy {
     }
 
     this.isRequestingJoin[teamId] = true;
-
+    
     this.teamMemberService.requestToJoinTeam(teamId).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: () => {
-        // Show success snack bar notification
-        this.errorHandler.showSuccessNotification('Join request sent successfully!');
-        
         this.successMessage = 'Join request sent successfully!';
         this.errorMessage = null;
         this.isRequestingJoin[teamId] = false;
@@ -109,29 +92,29 @@ export class TeamList implements OnInit, OnDestroy {
 
   isTeamMember(team: ITeam): boolean {
     if (!this.currentUserId) return false;
-
+    
     // Check if user is the creator
     if (team.createdBy === this.currentUserId) return true;
-
+    
     // Check if user is in members list
-    return team.members?.some(member =>
-      member.userId === this.currentUserId &&
+    return team.members?.some(member => 
+      member.userId === this.currentUserId && 
       (member.status === 'APPROVED' || member.status === 'PENDING')
     ) || false;
   }
 
   getJoinButtonText(team: ITeam): string {
     if (!this.currentUserId) return 'Login to Join';
-
+    
     const member = team.members?.find(m => m.userId === this.currentUserId);
     if (!member) return 'Join Team';
-
+    
     return member.status === 'PENDING' ? 'Request Pending' : 'Member';
   }
 
   isJoinDisabled(team: ITeam): boolean {
     if (!this.currentUserId) return false;
-
+    
     const member = team.members?.find(m => m.userId === this.currentUserId);
     return !!member && (member.status === 'PENDING' || member.status === 'APPROVED');
   }
@@ -143,7 +126,7 @@ export class TeamList implements OnInit, OnDestroy {
     this.userRoleMap = {}; // Clear existing roles
 
     // Choose service method based on filter
-    const teamsObservable = this.teamViewFilter === 'MY_TEAMS'
+    const teamsObservable = this.teamViewFilter === 'MY_TEAMS' 
       ? this.teamService.getUserTeams()
       : this.teamService.getOtherTeams();
 
@@ -152,7 +135,7 @@ export class TeamList implements OnInit, OnDestroy {
         console.log('TeamList: Received teams from service:', teams);
         console.log('TeamList: Number of teams received:', teams.length);
         this.teams = teams;
-
+        
         // Only load user roles for "My Teams" view
         if (this.teamViewFilter === 'MY_TEAMS') {
           this.loadUserRoles();
@@ -162,7 +145,7 @@ export class TeamList implements OnInit, OnDestroy {
             this.userRoleMap[team.id] = null;
           });
         }
-
+        
         this.successMessage = null;
         this.errorMessage = null;
         this.isLoading = false;
@@ -190,8 +173,8 @@ export class TeamList implements OnInit, OnDestroy {
     // Check user role for each team where user is a member
     this.teams.forEach(team => {
       // First check if user is a member of this team
-      const userMember = team.members?.find(member =>
-        member.userId === this.currentUserId &&
+      const userMember = team.members?.find(member => 
+        member.userId === this.currentUserId && 
         member.status === 'APPROVED'
       );
 
@@ -210,7 +193,7 @@ export class TeamList implements OnInit, OnDestroy {
       }
 
       // For other members, check organizer status via API
-      this.teamService.isUserTeamOrganizer( team.id).pipe(takeUntil(this.destroy$)).subscribe({
+      this.teamMemberService.isOrganizer(this.currentUserId!, team.id).pipe(takeUntil(this.destroy$)).subscribe({
         next: (isOrganizer) => {
           console.log(`TeamList: User role for team ${team.id}:`, isOrganizer ? 'ORGANIZER' : 'MEMBER');
           this.userRoleMap[team.id] = isOrganizer ? 'ORGANIZER' : 'MEMBER';
@@ -245,53 +228,20 @@ export class TeamList implements OnInit, OnDestroy {
   }
 
   deleteTeam(id: string): void {
-    const team = this.teams.find(t => t.id === id);
-    if (!team) return;
-
-    this.pendingDeleteTeamId = id;
-    this.confirmationDialogData = {
-      title: 'Delete Team',
-      message: `Are you sure you want to delete "${team.name}"? This action cannot be undone and will remove all team members and data.`,
-      confirmText: 'Delete Team',
-      cancelText: 'Cancel',
-      type: 'danger'
-    };
-    this.showConfirmationDialog = true;
-  }
-
-  private executeDeleteTeam(): void {
-    if (!this.pendingDeleteTeamId) return;
-
-    this.teamService.deleteTeam(this.pendingDeleteTeamId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        // Show success snack bar notification
-        this.errorHandler.showSuccessNotification('Team deleted successfully!');
-        
-        this.successMessage = 'Team deleted successfully!';
-        this.errorMessage = null;
-        this.loadTeams();
-        this.closeConfirmationDialog();
-      },
-      error: (err) => {
-        console.error('Failed to delete team', err);
-        this.errorMessage = 'Failed to delete team. Please try again.';
-        this.successMessage = null;
-        this.closeConfirmationDialog();
-      }
-    });
-  }
-
-  closeConfirmationDialog(): void {
-    this.showConfirmationDialog = false;
-    this.pendingDeleteTeamId = null;
-  }
-
-  onConfirmationConfirmed(): void {
-    this.executeDeleteTeam();
-  }
-
-  onConfirmationCancelled(): void {
-    this.closeConfirmationDialog();
+    if (confirm('Are you sure you want to delete this team?')) {
+      this.teamService.deleteTeam(id).pipe(takeUntil(this.destroy$)).subscribe({
+        next: () => {
+          this.successMessage = 'Team deleted successfully!';
+          this.errorMessage = null;
+          this.loadTeams();
+        },
+        error: (err) => {
+          console.error('Failed to delete team', err);
+          this.errorMessage = 'Failed to delete team. Please try again.';
+          this.successMessage = null;
+        }
+      });
+    }
   }
 
   goToHome(): void {
